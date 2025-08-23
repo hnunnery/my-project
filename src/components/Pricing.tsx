@@ -123,3 +123,4 @@ export function Pricing() {
     </div>
   )
 }
+
