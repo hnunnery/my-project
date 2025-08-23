@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useSession, signOut } from 'next-auth/react'
 import { Dialog, DialogPanel } from '@headlessui/react'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 
@@ -13,6 +14,14 @@ const navigation = [
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const { data: session, status } = useSession()
+  const isAuthenticated = status === 'authenticated'
+
+  const handleAuthAction = () => {
+    if (isAuthenticated) {
+      signOut({ callbackUrl: '/' })
+    }
+  }
 
   return (
     <header className="absolute inset-x-0 top-0 z-50">
@@ -49,10 +58,24 @@ export function Header() {
             </a>
           ))}
         </div>
-        <div className="hidden lg:flex lg:flex-1 lg:justify-end">
-          <a href="#" className="text-sm/6 font-semibold text-gray-900 dark:text-white">
-            Log in <span aria-hidden="true">&rarr;</span>
-          </a>
+        <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:gap-x-6">
+          {isAuthenticated && (
+            <a href="/dashboard" className="text-sm/6 font-semibold text-gray-900 dark:text-white hover:text-gray-700 dark:hover:text-gray-300">
+              Dashboard
+            </a>
+          )}
+          {isAuthenticated ? (
+            <button
+              onClick={handleAuthAction}
+              className="text-sm/6 font-semibold text-gray-900 dark:text-white hover:text-gray-700 dark:hover:text-gray-300"
+            >
+              Sign out
+            </button>
+          ) : (
+            <a href="/signin" className="text-sm/6 font-semibold text-gray-900 dark:text-white">
+              Sign in <span aria-hidden="true">&rarr;</span>
+            </a>
+          )}
         </div>
       </nav>
       
@@ -94,14 +117,31 @@ export function Header() {
                     {item.name}
                   </a>
                 ))}
+                {isAuthenticated && (
+                  <a
+                    href="/dashboard"
+                    className="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-900 hover:bg-gray-50 dark:text-white dark:hover:bg-white/5"
+                  >
+                    Dashboard
+                  </a>
+                )}
               </div>
               <div className="py-6">
-                <a
-                  href="#"
-                  className="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-gray-900 hover:bg-gray-50 dark:text-white dark:hover:bg-white/5"
-                >
-                  Log in
-                </a>
+                {isAuthenticated ? (
+                  <button
+                    onClick={handleAuthAction}
+                    className="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-gray-900 hover:bg-gray-50 dark:text-white dark:hover:bg-white/5 w-full text-left"
+                  >
+                    Sign out
+                  </button>
+                ) : (
+                  <a
+                    href="/signin"
+                    className="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-gray-900 hover:bg-gray-50 dark:text-white dark:hover:bg-white/5"
+                  >
+                    Sign in
+                  </a>
+                )}
               </div>
             </div>
           </div>
