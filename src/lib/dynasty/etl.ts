@@ -1,6 +1,5 @@
 import { PrismaClient } from "@prisma/client";
 import { fetchSleeperPlayers, fetchSleeperADP, SleeperPlayer } from "../sleeper";
-import { positionBuckets } from "./normalize";
 import { ageMultiplier } from "./ageCurves";
 import { composite } from "./formula";
 
@@ -120,22 +119,22 @@ export async function runDynastyETL(asOf = new Date('2025-01-01')) {
     .filter((r: { playerId: string; pos?: string; adp: number }): r is { playerId: string; pos: string; adp: number } => 
       Boolean(r.pos) && Number.isFinite(r.adp));
 
-  const buckets = positionBuckets(withPos);
+  // Use ADP directly without position-based normalization
   const marketById = new Map<string, number>();
   
-  console.log(`Position buckets:`, Object.keys(buckets).map(pos => `${pos}: ${buckets[pos].length}`));
+  console.log(`Processing ${withPos.length} players with ADP data`);
 
-  for (const [pos, arr] of Object.entries(buckets)) {
-    const adps = arr.map((a: { playerId: string; pos: string; adp: number }) => a.adp);
-    const min = Math.min(...adps);
-    const max = Math.max(...adps);
-    console.log(`Position ${pos}: ${arr.length} players, ADP range ${min}-${max}`);
-    for (const a of arr) {
-      // Use ADP directly - lower numbers are more valuable (1st pick = best)
-      // Convert to 0-100 scale where 1 = 100, max = 0
-      const marketValue = Math.max(0, 100 - ((a.adp - 1) / (max - 1)) * 100);
-      marketById.set(a.playerId, marketValue);
-    }
+  // Find global ADP range across all positions
+  const allADPs = withPos.map(a => a.adp);
+  const globalMin = Math.min(...allADPs);
+  const globalMax = Math.max(...allADPs);
+  console.log(`Global ADP range: ${globalMin}-${globalMax} across all positions`);
+
+  for (const a of withPos) {
+    // Use ADP directly - lower numbers are more valuable (1st pick = best)
+    // Convert to 0-100 scale where 1 = 100, max = 0
+    const marketValue = Math.max(0, 100 - ((a.adp - globalMin) / (globalMax - globalMin)) * 100);
+    marketById.set(a.playerId, marketValue);
   }
   
   console.log(`Generated ${marketById.size} market values`);
@@ -176,14 +175,12 @@ export async function runDynastyETL(asOf = new Date('2025-01-01')) {
       }
     }
     
-    const riskScore = 95; // TODO: plug injury/contract model; keep near-neutral for now
-    
     // Enhanced dynasty value calculation with better validation
     let dynastyValue: number | null = null;
     if (marketValue !== null && projectionScore !== null && ageScore !== null) {
       // Additional validation to ensure all scores are reasonable
-      if (marketValue >= 0 && projectionScore >= 0 && ageScore >= 1 && riskScore >= 0) {
-        dynastyValue = composite({ marketValue, projectionScore, ageScore, riskScore });
+      if (marketValue >= 0 && projectionScore >= 0 && ageScore >= 1) {
+        dynastyValue = composite({ marketValue, projectionScore, ageScore });
       }
     }
 
@@ -192,7 +189,6 @@ export async function runDynastyETL(asOf = new Date('2025-01-01')) {
       marketValue, 
       projectionScore, 
       ageScore, 
-      riskScore, 
       dynastyValue 
     };
   });
@@ -210,7 +206,7 @@ export async function runDynastyETL(asOf = new Date('2025-01-01')) {
     
     try {
       await prisma.$transaction(
-      batch.map((r: { playerId: string; marketValue: number | null; projectionScore: number | null; ageScore: number | null; riskScore: number; dynastyValue: number | null }) => prisma.valueDaily.upsert({
+      batch.map((r: { playerId: string; marketValue: number | null; projectionScore: number | null; ageScore: number | null; dynastyValue: number | null }) => prisma.valueDaily.upsert({
         where: { 
           asOfDate_playerId: { 
             asOfDate: now, 

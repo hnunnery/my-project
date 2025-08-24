@@ -4,12 +4,14 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "prisma generate && next build --turbopack",
+    "build": "npm run db:generate && next build --turbopack",
     "build:local": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "prisma generate",
-    "db:generate": "prisma generate",
+    "postinstall": "npm run db:generate",
+    "db:generate": "prisma generate || echo 'Prisma generation failed, continuing with build...'",
+    "db:generate:force": "Remove-Item -Recurse -Force node_modules\\.prisma -ErrorAction SilentlyContinue && prisma generate",
+    "fix-prisma": "powershell -ExecutionPolicy Bypass -File scripts\\fix-prisma.ps1",
     "vercel-build": "prisma generate && next build --turbopack"
   },
   "dependencies": {

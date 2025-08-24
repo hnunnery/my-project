@@ -2,22 +2,19 @@ interface ScoreInputs {
   marketValue: number;
   projectionScore: number;
   ageScore: number;
-  riskScore: number;
 }
 
-export function composite({ marketValue, projectionScore, ageScore, riskScore }: ScoreInputs): number {
+export function composite({ marketValue, projectionScore, ageScore }: ScoreInputs): number {
   const weights = {
-    market: 0.4,
-    projection: 0.3,
-    age: 0.2,
-    risk: 0.1,
+    market: 0.5,
+    projection: 0.25,
+    age: 0.25,
   };
 
   const weighted = 
     marketValue * weights.market +
     projectionScore * weights.projection +
-    ageScore * weights.age +
-    riskScore * weights.risk;
+    ageScore * weights.age;
 
   return Math.round(weighted * 100) / 100;
 }

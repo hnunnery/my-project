@@ -38,7 +38,7 @@ Sleeper API → Raw Data → Normalization → Age Adjustment → Composite Scor
    - Captures player metadata: position, team, age, injury status
 
 2. **Data Transformation**
-   - **Position-based normalization**: ADP values are normalized within each position group (0-100 scale, inverted since lower ADP = higher value)
+   - **Global ADP normalization**: ADP values are normalized across all positions (0-100 scale, inverted since lower ADP = higher value)
    - **Age curve application**: Each position has different peak ages and decline rates
    - **Projection calculation**: Combines market data with expected performance
    - **Risk scoring**: Currently simplified (95/100), designed for future injury/contract analysis
@@ -46,10 +46,9 @@ Sleeper API → Raw Data → Normalization → Age Adjustment → Composite Scor
 3. **Composite Scoring Formula**
    ```typescript
    dynastyValue = (
-     marketValue * 0.4 +      // What the market thinks (ADP-based)
-     projectionScore * 0.3 +   // Expected performance
-     ageScore * 0.2 +         // Age-adjusted value
-     riskScore * 0.1          // Injury/contract risk
+     marketValue * 0.5 +      // What the market thinks (ADP-based)
+     projectionScore * 0.25 +  // Expected performance
+     ageScore * 0.25          // Age-adjusted value
    )
    ```
 
@@ -111,7 +110,6 @@ model ValueDaily {
   marketValue     Float?   // Normalized market score (0-100)
   projectionScore Float?   // Expected performance score
   ageScore        Float?   // Age-adjusted score
-  riskScore       Float?   // Risk assessment score
   dynastyValue    Float?   // Final composite score
   trend7d         Float?   // 7-day trend delta
   trend30d        Float?   // 30-day trend delta

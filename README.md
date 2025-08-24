@@ -110,10 +110,9 @@ curl http://localhost:3000/api/cron/dynasty
 ### Scoring Formula
 ```typescript
 dynastyValue = (
-  marketValue * 0.4 +      // ADP-based market sentiment
-  projectionScore * 0.3 +   // Expected performance
-  ageScore * 0.2 +         // Age-adjusted value  
-  riskScore * 0.1          // Injury/contract risk
+  marketValue * 0.5 +      // ADP-based market sentiment
+  projectionScore * 0.25 +  // Expected performance
+  ageScore * 0.25          // Age-adjusted value  
 )
 ```
 

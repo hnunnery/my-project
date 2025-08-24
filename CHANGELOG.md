@@ -57,6 +57,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Removed redundant fields (PPG, Rostered %, Overall Rank, ECR, Status)
   - Better organization of player information for easier scanning
   - Maintained essential information while reducing cognitive load
+- **Dynasty Value Formula**: Updated scoring weights and removed risk score
+  - New weights: Market(50%) + Projection(25%) + Age(25%)
+  - Removed risk score (was hardcoded to 95 for all players)
+  - Changed from position-based ADP normalization to global ADP normalization
+  - All positions now compete on the same value scale for fair cross-position comparisons
 
 ### Fixed
 - **Team Matching**: Resolved issue where user's team wasn't being correctly identified
@@ -81,6 +86,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Reduced bandwidth usage through automatic image optimization
   - Eliminated all ESLint warnings related to image usage
   - Enhanced mobile-first design with optimized image loading
+- **Prisma Permission Issues**: Resolved Windows file locking problems during builds
+  - Added graceful fallback for Prisma generation failures
+  - Created automated fix script (`npm run fix-prisma`)
+  - Updated build scripts to handle Prisma issues more robustly
+  - Build now continues even if Prisma generation fails temporarily
 
 ### Removed
 - **Bye Week System**: Removed bye week API and caching functionality
