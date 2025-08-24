@@ -1,7 +1,7 @@
 import * as Headless from '@headlessui/react'
 import clsx from 'clsx'
 import type React from 'react'
-import { Text } from './text'
+
 
 const sizes = {
   xs: 'sm:max-w-xs',
@@ -68,10 +68,10 @@ export function AlertTitle({
 export function AlertDescription({
   className,
   ...props
-}: { className?: string } & Omit<Headless.DescriptionProps<typeof Text>, 'as' | 'className'>) {
+}: { className?: string } & Omit<Headless.DescriptionProps<'div'>, 'as' | 'className'>) {
   return (
     <Headless.Description
-      as={Text}
+      as="div"
       {...props}
       className={clsx(className, 'mt-2 text-center text-pretty sm:text-left')}
     />

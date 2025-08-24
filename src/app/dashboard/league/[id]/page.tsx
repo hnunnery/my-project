@@ -1,6 +1,7 @@
 'use client'
 
 import { AuthGuard } from '@/components/auth-guard'
+
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
@@ -49,6 +50,7 @@ interface SleeperPlayer {
   active: boolean
   injury_status?: string
   news_updated?: number
+  age?: number
   // Enhanced fields for fantasy decision making
   fantasy_points?: number
   fantasy_points_ppr?: number
@@ -334,7 +336,7 @@ export default function LeaguePage() {
     let defaultUsername: string | null = null
     try {
       const savedAccounts = JSON.parse(localStorage.getItem('sleeperAccounts') || '[]')
-      const defaultAccount = savedAccounts.find((account: any) => account.isDefault)
+             const defaultAccount = savedAccounts.find((account: { username: string; isDefault: boolean }) => account.isDefault)
       if (defaultAccount) {
         defaultUsername = defaultAccount.username
         console.log('Found default account:', defaultUsername)
@@ -470,35 +472,30 @@ export default function LeaguePage() {
 
           {activeTab === 'myteam' && (
             <div className="space-y-4 sm:space-y-6">
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">My Team: {myTeam?.metadata?.team_name || myTeamOwner?.display_name || myTeamOwner?.username || 'Unknown Team'}</h2>
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{myTeam?.metadata?.team_name || myTeamOwner?.display_name || myTeamOwner?.username || 'Unknown Team'}</h2>
                
-               {/* Team Overview Card */}
-               <div className="bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-lg shadow-sm p-3 sm:p-4 text-gray-800 dark:text-gray-200">
-                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
-                   <div className="flex items-center gap-2 sm:gap-3">
+                              {/* Team Overview Card */}
+               <div className="bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-lg shadow-sm p-2 sm:p-3 text-gray-800 dark:text-gray-200">
+                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
+                   <div className="flex items-center gap-2">
                      {myTeamOwner?.avatar && (
                        <img 
                          src={`https://sleepercdn.com/avatars/thumbs/${myTeamOwner.avatar}`}
                          alt="Avatar" 
-                         className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border border-indigo-200 dark:border-indigo-700"
+                         className="w-6 h-6 sm:w-8 sm:h-8 rounded-full border border-indigo-200 dark:border-indigo-700"
                          onError={(e) => {
                            e.currentTarget.style.display = 'none'
                          }}
                        />
                      )}
                      <div>
-                       <h3 className="text-base sm:text-lg font-semibold">
+                       <h3 className="text-sm sm:text-base font-semibold">
                          {myTeam?.metadata?.team_name || myTeamOwner?.display_name || myTeamOwner?.username || 'Unknown Team'}
                        </h3>
-                                              <p className="text-indigo-600 dark:text-indigo-400 text-xs sm:text-sm">
-                         @{myTeamOwner?.username}
-                       </p>
-                       
-
-                       </div>
+                     </div>
                    </div>
                    <div className="text-center sm:text-right">
-                     <div className="text-lg sm:text-xl font-bold text-indigo-600 dark:text-indigo-400">
+                     <div className="text-base sm:text-lg font-bold text-indigo-600 dark:text-indigo-400">
                        {(Array.isArray(myTeam?.starters) ? myTeam.starters.length : 0) + (Array.isArray(myTeam?.reserve) ? myTeam.reserve.length : 0)}
                      </div>
                      <div className="text-indigo-600 dark:text-indigo-400 text-xs">Total Players</div>
@@ -506,21 +503,21 @@ export default function LeaguePage() {
                  </div>
                  
                  {/* Quick Stats */}
-                 <div className="grid grid-cols-4 gap-2 sm:gap-3 mt-3">
+                 <div className="grid grid-cols-4 gap-1 sm:gap-2 mt-2">
                    <div className="text-center">
-                     <div className="text-base sm:text-lg font-bold text-indigo-600 dark:text-indigo-400">{Array.isArray(myTeam?.starters) ? myTeam.starters.length : 0}</div>
+                     <div className="text-sm sm:text-base font-bold text-indigo-600 dark:text-indigo-400">{Array.isArray(myTeam?.starters) ? myTeam.starters.length : 0}</div>
                      <div className="text-indigo-600 dark:text-indigo-400 text-xs">Starters</div>
                    </div>
                    <div className="text-center">
-                     <div className="text-base sm:text-lg font-bold text-indigo-600 dark:text-indigo-400">{Array.isArray(myTeam?.reserve) ? myTeam.reserve.length : 0}</div>
+                     <div className="text-sm sm:text-base font-bold text-indigo-600 dark:text-indigo-400">{Array.isArray(myTeam?.reserve) ? myTeam.reserve.length : 0}</div>
                      <div className="text-indigo-600 dark:text-indigo-400 text-xs">Bench</div>
                    </div>
                    <div className="text-center">
-                     <div className="text-base sm:text-lg font-bold text-indigo-600 dark:text-indigo-400">{Array.isArray(myTeam?.taxi) ? myTeam.taxi.length : 0}</div>
+                     <div className="text-sm sm:text-base font-bold text-indigo-600 dark:text-indigo-400">{Array.isArray(myTeam?.taxi) ? myTeam.taxi.length : 0}</div>
                      <div className="text-indigo-600 dark:text-indigo-400 text-xs">Taxi</div>
                    </div>
                    <div className="text-center">
-                     <div className="text-base sm:text-lg font-bold text-indigo-600 dark:text-indigo-400">
+                     <div className="text-sm sm:text-base font-bold text-indigo-600 dark:text-indigo-400">
                        {(Array.isArray(myTeam?.starters) ? myTeam.starters.length : 0) + 
                         (Array.isArray(myTeam?.reserve) ? myTeam.reserve.length : 0) + 
                         (Array.isArray(myTeam?.taxi) ? myTeam.taxi.length : 0)}
@@ -545,13 +542,13 @@ export default function LeaguePage() {
                           Starters ({Array.isArray(myTeam?.starters) ? myTeam.starters.length : 0})
                         </h4>
                       </div>
-                      <ul role="list" className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                      <ul role="list" className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 sm:gap-4">
                         {(Array.isArray(myTeam?.starters) ? myTeam.starters : []).map((playerId) => (
                           <li
                             key={playerId}
                             className="col-span-1 divide-y divide-gray-200 rounded-lg bg-white shadow-sm dark:divide-white/10 dark:bg-gray-800/50 dark:shadow-none dark:outline dark:-outline-offset-1 dark:outline-white/10"
                           >
-                            <div className="flex w-full items-center space-x-4 p-6">
+                            <div className="flex w-full items-center space-x-3 p-4">
                               <div className="size-10 shrink-0 rounded-full bg-white dark:bg-white flex items-center justify-center outline -outline-offset-1 outline-black/5 dark:outline-white/10 overflow-hidden">
                                 {(() => {
                                   const player = leagueData?.players[playerId]
@@ -603,76 +600,32 @@ export default function LeaguePage() {
                               </div>
                             </div>
                             <div>
-                              {/* Row 1: Rank, PPG, Rostered */}
+                              {/* Row 1: Value, Age */}
                               <div className="-mt-px flex divide-x divide-gray-200 dark:divide-white/10">
                                 <div className="flex w-0 flex-1">
-                                  <div className="relative -mr-px inline-flex w-0 flex-1 items-center justify-center gap-x-3 rounded-bl-lg border border-transparent py-3 text-xs font-medium text-gray-900 dark:text-white">
-                                    <span className="text-xs text-gray-500 dark:text-gray-400">Rank</span>
+                                  <div className="relative -mr-px inline-flex w-0 flex-1 items-center justify-center gap-x-2 rounded-bl-lg border border-transparent py-2 text-xs font-medium text-gray-900 dark:text-white">
+                                    <span className="text-xs text-gray-500 dark:text-gray-400">Value</span>
                                     <span className="text-xs font-medium text-gray-900 dark:text-white">
                                       {(() => {
                                         const player = leagueData?.players[playerId]
-                                        return player?.rank_position ? `#${player.rank_position}` : 'N/A'
+                                        // Calculate a simple value score based on available data
+                                        if (player?.fantasy_points_ppr && player?.rank_position) {
+                                          const value = Math.max(0, Math.round((player.fantasy_points_ppr / player.rank_position) * 100))
+                                          return value.toString()
+                                        }
+                                        return 'N/A'
                                       })()}
                                     </span>
                                   </div>
                                 </div>
                                 <div className="-ml-px flex w-0 flex-1">
-                                  <div className="relative inline-flex w-0 flex-1 items-center justify-center gap-x-3 border border-transparent py-3 text-xs font-medium text-gray-900 dark:text-white">
-                                    <span className="text-xs text-gray-500 dark:text-gray-400">PPG</span>
+                                  <div className="relative inline-flex w-0 flex-1 items-center justify-center gap-x-2 rounded-br-lg border border-transparent py-2 text-xs font-medium text-gray-900 dark:text-white">
+                                    <span className="text-xs text-gray-500 dark:text-gray-400">Age</span>
                                     <span className="text-xs font-medium text-gray-900 dark:text-white">
                                       {(() => {
                                         const player = leagueData?.players[playerId]
-                                        return player?.fantasy_points_ppr ? `${player.fantasy_points_ppr.toFixed(1)}` : 'N/A'
+                                        return player?.age || 'N/A'
                                       })()}
-                                    </span>
-                                  </div>
-                                </div>
-                                <div className="-ml-px flex w-0 flex-1">
-                                  <div className="relative inline-flex w-0 flex-1 items-center justify-center gap-x-3 rounded-br-lg border border-transparent py-3 text-xs font-medium text-gray-900 dark:text-white">
-                                    <span className="text-xs text-gray-500 dark:text-gray-400">Rostered</span>
-                                    <span className="text-xs font-medium text-gray-900 dark:text-white">
-                                      {(() => {
-                                        const player = leagueData?.players[playerId]
-                                        return player?.active ? 'Active' : 'Inactive'
-                                      })()}
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-                              
-
-                              
-                              {/* Row 2: Overall Rank, ECR, Bye, Status */}
-                              <div className="flex divide-x divide-gray-200 dark:divide-white/10">
-                                <div className="flex w-0 flex-1">
-                                  <div className="relative -mr-px inline-flex w-0 flex-1 items-center justify-center gap-x-3 rounded-bl-lg border border-transparent py-3 text-xs font-medium text-gray-900 dark:text-white">
-                                    <span className="text-xs text-gray-500 dark:text-gray-400">Overall</span>
-                                    <span className="text-xs font-medium text-gray-900 dark:text-white">
-                                      {(() => {
-                                        const player = leagueData?.players[playerId]
-                                        return player?.rank ? `#${player.rank}` : 'N/A'
-                                      })()}
-                                    </span>
-                                  </div>
-                                </div>
-                                <div className="-ml-px flex w-0 flex-1">
-                                  <div className="relative inline-flex w-0 flex-1 items-center justify-center gap-x-3 border border-transparent py-3 text-xs font-medium text-gray-900 dark:text-white">
-                                    <span className="text-xs text-gray-500 dark:text-gray-400">ECR</span>
-                                    <span className="text-xs font-medium text-gray-900 dark:text-white">
-                                      {(() => {
-                                        const player = leagueData?.players[playerId]
-                                        // Try to get ECR value, fallback to other ranking data if not available
-                                        const ecrValue = player?.rank_ecr || player?.rank || player?.rank_position
-                                        return ecrValue ? `#${ecrValue}` : 'N/A'
-                                      })()}
-                                    </span>
-                                  </div>
-                                </div>
-                                <div className="-ml-px flex w-0 flex-1">
-                                  <div className="relative inline-flex w-0 flex-1 items-center justify-center gap-x-3 rounded-br-lg border border-transparent py-3 text-xs font-medium text-gray-900 dark:text-white">
-                                    <span className="text-xs text-gray-500 dark:text-gray-400">Status</span>
-                                    <span className="text-xs font-medium text-gray-900 dark:text-white">
-                                      {getPlayerInjuryStatus(playerId) || 'Healthy'}
                                     </span>
                                   </div>
                                 </div>
@@ -691,13 +644,13 @@ export default function LeaguePage() {
                           Bench ({Array.isArray(myTeam?.reserve) ? myTeam.reserve.length : 0})
                         </h4>
                       </div>
-                      <ul role="list" className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                      <ul role="list" className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 sm:gap-4">
                         {(Array.isArray(myTeam?.reserve) ? myTeam.reserve : []).map((playerId) => (
                           <li
                             key={playerId}
                             className="col-span-1 divide-y divide-gray-200 rounded-lg bg-white shadow-sm dark:divide-white/10 dark:bg-gray-800/50 dark:shadow-none dark:outline dark:-outline-offset-1 dark:outline-white/10"
                           >
-                            <div className="flex w-full items-center space-x-4 p-6">
+                            <div className="flex w-full items-center space-x-3 p-4">
                               <div className="size-10 shrink-0 rounded-full bg-white dark:bg-white flex items-center justify-center outline -outline-offset-1 outline-black/5 dark:outline-white/10 overflow-hidden">
                                 {(() => {
                                   const player = leagueData?.players[playerId]
@@ -749,63 +702,31 @@ export default function LeaguePage() {
                               </div>
                             </div>
                             <div>
-                              {/* Row 1: Rank, PPG, Status */}
+                              {/* Row 1: Value, Age */}
                               <div className="-mt-px flex divide-x divide-gray-200 dark:divide-white/10">
                                 <div className="flex w-0 flex-1">
-                                  <div className="relative -mr-px inline-flex w-0 flex-1 items-center justify-center gap-x-3 rounded-bl-lg border border-transparent py-3 text-xs font-medium text-gray-900 dark:text-white">
-                                    <span className="text-xs text-gray-500 dark:text-gray-400">Rank</span>
+                                  <div className="relative -mr-px inline-flex w-0 flex-1 items-center justify-center gap-x-2 rounded-bl-lg border border-transparent py-2 text-xs font-medium text-gray-900 dark:text-white">
+                                    <span className="text-xs text-gray-500 dark:text-gray-400">Value</span>
                                     <span className="text-xs font-medium text-gray-900 dark:text-white">
                                       {(() => {
                                         const player = leagueData?.players[playerId]
-                                        return player?.rank_position ? `#${player.rank_position}` : 'N/A'
+                                        // Calculate a simple value score based on available data
+                                        if (player?.fantasy_points_ppr && player?.rank_position) {
+                                          const value = Math.max(0, Math.round((player.fantasy_points_ppr / player.rank_position) * 100))
+                                          return value.toString()
+                                        }
+                                        return 'N/A'
                                       })()}
                                     </span>
                                   </div>
                                 </div>
                                 <div className="-ml-px flex w-0 flex-1">
-                                  <div className="relative inline-flex w-0 flex-1 items-center justify-center gap-x-3 border border-transparent py-3 text-xs font-medium text-gray-900 dark:text-white">
-                                    <span className="text-xs text-gray-500 dark:text-gray-400">PPG</span>
+                                  <div className="relative inline-flex w-0 flex-1 items-center justify-center gap-x-2 rounded-br-lg border border-transparent py-2 text-xs font-medium text-gray-900 dark:text-white">
+                                    <span className="text-xs text-gray-500 dark:text-gray-400">Age</span>
                                     <span className="text-xs font-medium text-gray-900 dark:text-white">
                                       {(() => {
                                         const player = leagueData?.players[playerId]
-                                        return player?.fantasy_points_ppr ? `${player.fantasy_points_ppr.toFixed(1)}` : 'N/A'
-                                      })()}
-                                    </span>
-                                  </div>
-                                </div>
-                                <div className="-ml-px flex w-0 flex-1">
-                                  <div className="relative inline-flex w-0 flex-1 items-center justify-center gap-x-3 rounded-br-lg border border-transparent py-3 text-xs font-medium text-gray-900 dark:text-white">
-                                    <span className="text-xs text-gray-500 dark:text-gray-400">Status</span>
-                                    <span className="text-xs font-medium text-gray-900 dark:text-white">
-                                      {getPlayerInjuryStatus(playerId) || 'Healthy'}
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-                              
-                              {/* Row 2: ECR, Bye, Points */}
-                              <div className="flex divide-x divide-gray-200 dark:divide-white/10">
-                                <div className="flex w-0 flex-1">
-                                  <div className="relative -mr-px inline-flex w-0 flex-1 items-center justify-center gap-x-3 rounded-bl-lg border border-transparent py-3 text-xs font-medium text-gray-900 dark:text-white">
-                                    <span className="text-xs text-gray-500 dark:text-gray-400">ECR</span>
-                                    <span className="text-xs font-medium text-gray-900 dark:text-white">
-                                      {(() => {
-                                        const player = leagueData?.players[playerId]
-                                        // Try to get ECR value, fallback to other ranking data if not available
-                                        const ecrValue = player?.rank_ecr || player?.rank || player?.rank_position
-                                        return ecrValue ? `#${ecrValue}` : 'N/A'
-                                      })()}
-                                    </span>
-                                  </div>
-                                </div>
-
-                                <div className="-ml-px flex w-0 flex-1">
-                                  <div className="relative inline-flex w-0 flex-1 items-center justify-center gap-x-3 rounded-br-lg border border-transparent py-3 text-xs font-medium text-gray-900 dark:text-white">
-                                    <span className="text-xs text-gray-500 dark:text-gray-400">Points</span>
-                                    <span className="text-xs font-medium text-gray-900 dark:text-white">
-                                      {(() => {
-                                        const player = leagueData?.players[playerId]
-                                        return player?.fantasy_points ? `${player.fantasy_points.toFixed(1)}` : 'N/A'
+                                        return player?.age || 'N/A'
                                       })()}
                                     </span>
                                   </div>
@@ -826,13 +747,13 @@ export default function LeaguePage() {
                             Taxi Squad ({myTeam.taxi.length})
                           </h4>
                         </div>
-                        <ul role="list" className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                        <ul role="list" className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 sm:gap-4">
                           {myTeam.taxi.map((playerId) => (
                             <li
                               key={playerId}
                               className="col-span-1 divide-y divide-gray-200 rounded-lg bg-white shadow-sm dark:divide-white/10 dark:bg-gray-800/50 dark:shadow-none dark:outline dark:-outline-offset-1 dark:outline-white/10"
                             >
-                              <div className="flex w-full items-center space-x-4 p-6">
+                              <div className="flex w-full items-center space-x-3 p-4">
                                 <div className="size-10 shrink-0 rounded-full bg-white dark:bg-white flex items-center justify-center outline -outline-offset-1 outline-black/5 dark:outline-white/10 overflow-hidden">
                                   {(() => {
                                     const player = leagueData?.players[playerId]
@@ -883,61 +804,31 @@ export default function LeaguePage() {
                                 </div>
                               </div>
                               <div>
-                                {/* Row 1: Rank, PPG, Status */}
+                                {/* Row 1: Value, Age */}
                                 <div className="-mt-px flex divide-x divide-gray-200 dark:divide-white/10">
                                   <div className="flex w-0 flex-1">
-                                    <div className="relative -mr-px inline-flex w-0 flex-1 items-center justify-center gap-x-3 rounded-bl-lg border border-transparent py-3 text-xs font-medium text-gray-900 dark:text-white">
-                                      <span className="text-xs text-gray-500 dark:text-gray-400">Rank</span>
+                                    <div className="relative -mr-px inline-flex w-0 flex-1 items-center justify-center gap-x-2 rounded-bl-lg border border-transparent py-2 text-xs font-medium text-gray-900 dark:text-white">
+                                      <span className="text-xs text-gray-500 dark:text-gray-400">Value</span>
                                       <span className="text-xs font-medium text-gray-900 dark:text-white">
                                         {(() => {
                                           const player = leagueData?.players[playerId]
-                                          return player?.rank_position ? `#${player.rank_position}` : 'N/A'
+                                          // Calculate a simple value score based on available data
+                                          if (player?.fantasy_points_ppr && player?.rank_position) {
+                                            const value = Math.max(0, Math.round((player.fantasy_points_ppr / player.rank_position) * 100))
+                                            return value.toString()
+                                          }
+                                          return 'N/A'
                                         })()}
                                       </span>
                                     </div>
                                   </div>
                                   <div className="-ml-px flex w-0 flex-1">
-                                    <div className="relative inline-flex w-0 flex-1 items-center justify-center gap-x-3 border border-transparent py-3 text-xs font-medium text-gray-900 dark:text-white">
-                                      <span className="text-xs text-gray-500 dark:text-gray-400">PPG</span>
+                                    <div className="relative inline-flex w-0 flex-1 items-center justify-center gap-x-2 rounded-br-lg border border-transparent py-2 text-xs font-medium text-gray-900 dark:text-white">
+                                      <span className="text-xs text-gray-500 dark:text-gray-400">Age</span>
                                       <span className="text-xs font-medium text-gray-900 dark:text-white">
                                         {(() => {
                                           const player = leagueData?.players[playerId]
-                                          return player?.fantasy_points_ppr ? `${player.fantasy_points_ppr.toFixed(1)}` : 'N/A'
-                                        })()}
-                                      </span>
-                                    </div>
-                                  </div>
-                                  <div className="-ml-px flex w-0 flex-1">
-                                    <div className="relative inline-flex w-0 flex-1 items-center justify-center gap-x-3 rounded-br-lg border border-transparent py-3 text-xs font-medium text-gray-900 dark:text-white">
-                                      <span className="text-xs text-gray-500 dark:text-gray-400">Status</span>
-                                      <span className="text-xs font-medium text-gray-900 dark:text-white">
-                                        {getPlayerInjuryStatus(playerId) || 'Healthy'}
-                                      </span>
-                                    </div>
-                                  </div>
-                                </div>
-                                
-                                {/* Row 2: ECR, Points */}
-                                <div className="flex divide-x divide-gray-200 dark:divide-white/10">
-                                  <div className="flex w-0 flex-1">
-                                    <div className="relative -mr-px inline-flex w-0 flex-1 items-center justify-center gap-x-3 rounded-bl-lg border border-transparent py-3 text-xs font-medium text-gray-900 dark:text-white">
-                                      <span className="text-xs text-gray-500 dark:text-gray-400">ECR</span>
-                                      <span className="text-xs font-medium text-gray-900 dark:text-white">
-                                        {(() => {
-                                          const player = leagueData?.players[playerId]
-                                          const ecrValue = player?.rank_ecr || player?.rank || player?.rank_position
-                                          return ecrValue ? `#${ecrValue}` : 'N/A'
-                                        })()}
-                                      </span>
-                                    </div>
-                                  </div>
-                                  <div className="-ml-px flex w-0 flex-1">
-                                    <div className="relative inline-flex w-0 flex-1 items-center justify-center gap-x-3 rounded-br-lg border border-transparent py-3 text-xs font-medium text-gray-900 dark:text-white">
-                                      <span className="text-xs text-gray-500 dark:text-gray-400">Points</span>
-                                      <span className="text-xs font-medium text-gray-900 dark:text-white">
-                                        {(() => {
-                                          const player = leagueData?.players[playerId]
-                                          return player?.fantasy_points ? `${player.fantasy_points.toFixed(1)}` : 'N/A'
+                                          return player?.age || 'N/A'
                                         })()}
                                       </span>
                                     </div>

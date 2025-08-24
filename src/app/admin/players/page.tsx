@@ -201,7 +201,7 @@ export default function AdminPlayersPage() {
                   <div className="text-sm text-blue-800 dark:text-blue-300 space-y-2">
                     <p>• Player data is automatically fetched from Sleeper API and cached for 24 hours</p>
                     <p>• The cache reduces API calls and improves performance</p>
-                    <p>• Use "Force Refresh Cache" to manually update the data</p>
+                    <p>• Use &quot;Force Refresh Cache&quot; to manually update the data</p>
                     <p>• Cache is stored locally on the server in JSON format</p>
                   </div>
                 </div>

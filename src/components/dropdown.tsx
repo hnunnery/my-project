@@ -3,15 +3,14 @@
 import * as Headless from '@headlessui/react'
 import clsx from 'clsx'
 import type React from 'react'
-import { Button } from './button'
-import { Link } from './link'
+
 
 export function Dropdown(props: Headless.MenuProps) {
   return <Headless.Menu {...props} />
 }
 
-export function DropdownButton<T extends React.ElementType = typeof Button>({
-  as = Button,
+export function DropdownButton<T extends React.ElementType = 'button'>({
+  as = 'button' as T,
   ...props
 }: { className?: string } & Omit<Headless.MenuButtonProps<T>, 'className'>) {
   return <Headless.MenuButton as={as} {...props} />
@@ -53,10 +52,7 @@ export function DropdownMenu({
 export function DropdownItem({
   className,
   ...props
-}: { className?: string } & (
-  | Omit<Headless.MenuItemProps<'button'>, 'as' | 'className'>
-  | Omit<Headless.MenuItemProps<typeof Link>, 'as' | 'className'>
-)) {
+}: { className?: string } & Omit<Headless.MenuItemProps<'button'>, 'as' | 'className'>) {
   const classes = clsx(
     className,
     // Base styles
@@ -78,9 +74,7 @@ export function DropdownItem({
     '*:data-[slot=avatar]:mr-2.5 *:data-[slot=avatar]:-ml-1 *:data-[slot=avatar]:size-6 sm:*:data-[slot=avatar]:mr-2 sm:*:data-[slot=avatar]:size-5'
   )
 
-  return 'href' in props ? (
-    <Headless.MenuItem as={Link} {...props} className={classes} />
-  ) : (
+  return (
     <Headless.MenuItem as="button" type="button" {...props} className={classes} />
   )
 }

@@ -82,12 +82,13 @@ async function fetchFreshByeWeekData(season: string): Promise<ByeWeekData> {
     const teams = new Set<string>()
     
     // Get all teams from schedule
-    Object.values(schedule).forEach((week: any) => {
+    Object.values(schedule).forEach((week: unknown) => {
       if (week && typeof week === 'object') {
-        Object.values(week).forEach((game: any) => {
-          if (game && typeof game === 'object' && game.away && game.home) {
-            teams.add(game.away)
-            teams.add(game.home)
+        Object.values(week).forEach((game: unknown) => {
+          if (game && typeof game === 'object' && game !== null && 'away' in game && 'home' in game) {
+            const gameObj = game as { away: string; home: string }
+            teams.add(gameObj.away)
+            teams.add(gameObj.home)
           }
         })
       }
@@ -100,9 +101,9 @@ async function fetchFreshByeWeekData(season: string): Promise<ByeWeekData> {
       for (let week = 1; week <= 18; week++) {
         const weekKey = week.toString()
         if (schedule[weekKey]) {
-          const hasGame = Object.values(schedule[weekKey]).some((game: any) => 
-            game && typeof game === 'object' && 
-            (game.away === team || game.home === team)
+          const hasGame = Object.values(schedule[weekKey]).some((game: unknown) => 
+            game && typeof game === 'object' && game !== null && 'away' in game && 'home' in game &&
+            ((game as { away: string; home: string }).away === team || (game as { away: string; home: string }).home === team)
           )
           if (!hasGame) {
             byeWeek = week
