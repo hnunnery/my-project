@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useSession, signOut } from 'next-auth/react'
-import { Dialog, DialogPanel } from '@headlessui/react'
+import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 
 const navigation = [
@@ -72,9 +72,14 @@ export function Header() {
               Sign out
             </button>
           ) : (
-            <a href="/signin" className="text-sm/6 font-semibold text-gray-900 dark:text-white">
-              Sign in <span aria-hidden="true">&rarr;</span>
-            </a>
+            <>
+              <a href="/signup" className="text-sm/6 font-semibold text-gray-900 dark:text-white">
+                Sign up
+              </a>
+              <a href="/signin" className="text-sm/6 font-semibold text-gray-900 dark:text-white">
+                Sign in <span aria-hidden="true">&rarr;</span>
+              </a>
+            </>
           )}
         </div>
       </nav>
@@ -82,6 +87,7 @@ export function Header() {
       <Dialog open={mobileMenuOpen} onClose={setMobileMenuOpen} className="lg:hidden">
         <div className="fixed inset-0 z-50" />
         <DialogPanel className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-white p-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10 dark:bg-gray-900 dark:sm:ring-gray-100/10">
+          <DialogTitle className="sr-only">Navigation menu</DialogTitle>
           <div className="flex items-center justify-between">
             <a href="#" className="-m-1.5 p-1.5">
               <span className="sr-only">Your Company</span>
@@ -135,12 +141,20 @@ export function Header() {
                     Sign out
                   </button>
                 ) : (
-                  <a
-                    href="/signin"
-                    className="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-gray-900 hover:bg-gray-50 dark:text-white dark:hover:bg-white/5"
-                  >
-                    Sign in
-                  </a>
+                  <div className="space-y-2">
+                    <a
+                      href="/signup"
+                      className="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-gray-900 hover:bg-gray-50 dark:text-white dark:hover:bg-white/5"
+                    >
+                      Sign up
+                    </a>
+                    <a
+                      href="/signin"
+                      className="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-gray-900 hover:bg-gray-50 dark:text-white dark:hover:bg-white/5"
+                    >
+                      Sign in
+                    </a>
+                  </div>
                 )}
               </div>
             </div>
