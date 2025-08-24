@@ -8,10 +8,12 @@ import bcrypt from "bcryptjs"
 const handler = NextAuth({
   adapter: PrismaAdapter(prisma),
   providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    }),
+    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET ? [
+      GoogleProvider({
+        clientId: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      })
+    ] : []),
     CredentialsProvider({
       name: "credentials",
       credentials: {
@@ -23,24 +25,29 @@ const handler = NextAuth({
           return null
         }
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email }
-        })
+        try {
+          const user = await prisma.user.findUnique({
+            where: { email: credentials.email }
+          })
 
-        if (!user || !user.password) {
+          if (!user || !user.password) {
+            return null
+          }
+
+          const isPasswordValid = await bcrypt.compare(credentials.password, user.password)
+          
+          if (!isPasswordValid) {
+            return null
+          }
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+          }
+        } catch (error) {
+          console.error("Auth error:", error)
           return null
-        }
-
-        const isPasswordValid = await bcrypt.compare(credentials.password, user.password)
-        
-        if (!isPasswordValid) {
-          return null
-        }
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
         }
       }
     })
@@ -51,6 +58,7 @@ const handler = NextAuth({
   session: {
     strategy: "jwt",
   },
+  debug: process.env.NODE_ENV === "development",
 })
 
 export { handler as GET, handler as POST }

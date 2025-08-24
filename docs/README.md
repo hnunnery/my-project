@@ -34,11 +34,12 @@ Welcome to the Fantasy Football Dashboard documentation. This folder contains co
 - Code standards
 - Testing guidelines
 
-### 🚀 [Deployment Guide](./DEPLOYMENT.md) *(Coming Soon)*
-- Environment setup
-- Build process
-- Deployment steps
-- Troubleshooting
+### 🚀 [Deployment Guide](./DEPLOYMENT.md)
+- Vercel deployment configuration
+- Environment variables setup
+- Prisma Client generation fixes
+- Database provider recommendations
+- Troubleshooting common deployment issues
 
 ### 📖 [User Guide](./USER_GUIDE.md) *(Coming Soon)*
 - How to use the dashboard

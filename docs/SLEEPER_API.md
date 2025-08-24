@@ -17,6 +17,12 @@ https://api.sleeper.app/v1/
 - `GET /league/{league_id}/rosters` - Get all rosters in a league
 - `GET /players/nfl` - Get all NFL players (current year)
 - `GET /players/nfl/{year}` - Get NFL players for specific year
+- `GET /state/nfl` - Get current NFL state (week, season info)
+- `GET /schedules/nfl/{year}` - Get NFL schedule for bye week data
+
+### Internal API Endpoints (Our Application)
+- `GET /api/players` - Cached NFL player data with daily refresh
+- `GET /api/byeweeks` - Cached bye week data with 30-day refresh
 
 ## 🏈 Data Structures
 
@@ -103,6 +109,9 @@ interface SleeperPlayer {
   bye_week?: number      // Team bye week
   game_week?: number     // Current game week
   opponent?: string      // Next opponent
+  
+  // Additional Fields
+  age?: number           // Player age
 }
 ```
 
@@ -111,25 +120,30 @@ interface SleeperPlayer {
 ### ✅ Currently Using
 - Basic player info (name, position, team)
 - Fantasy points (PPR)
-- Rankings (position rank, overall rank, ECR)
+- Rankings (position rank for value calculation)
 - Injury status
-- Bye week (when available)
+- Bye week (cached from schedule API)
 - Active status
 - User information
 - League settings
-- Roster management
+- Roster management (including taxi squad)
+- Player age
+- Calculated value metric (PPR points / position rank)
 
 ### 🚧 Partially Using
 - Stats (only basic structure defined)
 - League settings (basic info only)
+- Rankings (using position rank for calculations, not displaying all ranks)
 
 ### ❌ Not Using Yet
 - Game stats (passing/rushing/receiving yards, TDs, etc.)
 - News updates
-- Taxi squad players
 - Half PPR and standard scoring
 - Game week and opponent info
 - Player search rankings
+- Expert Consensus Rankings (ECR)
+- Points per game (PPG)
+- Rostered percentage data
 
 ## 🚀 Potential Future Enhancements
 
@@ -151,10 +165,29 @@ interface SleeperPlayer {
 
 ## 📝 Notes
 
-- The `bye_week` field is not consistently populated in the API response
+- The `bye_week` field is not consistently populated in the API response, so we cache it separately
 - Player stats may vary by season and availability
 - Some fields are optional and may be null/undefined
 - The API supports multiple scoring formats (PPR, Half PPR, Standard)
+- Our application implements server-side caching for improved performance:
+  - Player data cached for 24 hours
+  - Bye week data cached for 30 days
+  - Graceful fallback when cache APIs fail
+
+## 🏗️ Caching Architecture
+
+### Player Data Cache (`/api/players`)
+- **Source**: `GET https://api.sleeper.app/v1/players/nfl`
+- **Refresh**: Daily (24-hour cache)
+- **Storage**: Server filesystem with JSON format
+- **Purpose**: Reduce API calls and improve page load performance
+
+### Bye Week Cache (`/api/byeweeks`)
+- **Source**: `GET https://api.sleeper.app/v1/schedules/nfl/{year}`
+- **Refresh**: Monthly (30-day cache) 
+- **Storage**: Server filesystem with JSON format
+- **Purpose**: Provide reliable bye week data when player data lacks it
+- **Fallback**: Graceful degradation when schedule API fails
 
 ## 🔗 Resources
 

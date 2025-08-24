@@ -13,38 +13,59 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - 30-day cache duration for static bye week data
   - Admin panel integration for bye week cache management
   - Graceful fallback when bye week API fails
-- **Taxi Squad Support**: Added support for taxi squad players in "My Team" section
-  - Taxi squad player cards with yellow styling
-  - Updated quick stats to include taxi squad count
+- **Taxi Squad Support**: Added comprehensive support for taxi squad players
+  - Dedicated "Taxi Squad" section in "My Team" page
+  - Taxi squad player cards with distinctive yellow styling
+  - Updated quick stats to include taxi squad count (Starters, Bench, Taxi, Total)
   - Position breakdown includes taxi squad players
   - Empty state check includes taxi squad players
+- **Player Card Improvements**: Enhanced player card layout and information
+  - Tighter spacing optimized for mobile viewing
+  - Streamlined field display (Value and Age replacing multiple stats)
+  - Image positioning improvements with white background fallback
+  - Better mobile responsiveness with condensed layouts
 
 ### Changed
 - **League Page Structure**: Simplified to focus on core functionality
-  - Removed "Standings" tab (was placeholder)
-  - Removed "Matchups" tab (was placeholder)
-  - Removed trade analysis tool from Player Analysis tab
-  - Now shows only 3 main tabs: My Team, Team Rosters, Player Analysis
-- **Bye Week Display**: Enhanced bye week information display
-  - Bye week badges now show on all player cards
-  - Integrated with new bye week cache system
-  - Fallback to player-specific bye week data when available
-  - Orange-styled "BYE: X" badges for better visibility
+  - Removed "Standings" tab (was placeholder with no functionality)
+  - Removed "Matchups" tab (was placeholder with no functionality)
+  - Streamlined to 3 main tabs: My Team, Team Rosters, Analysis
+  - Cleaner navigation and reduced clutter
+- **UI Polish and Mobile Optimization**: Enhanced user experience across devices
+  - Condensed team overview cards for better mobile display
+  - Improved spacing and typography throughout the application
+  - Better responsive design for player cards and statistics
+  - Cleaned up header styling and reduced unnecessary visual noise
+- **Player Statistics Display**: Refined data presentation
+  - Updated player cards to show Value (calculated metric) and Age
+  - Removed redundant fields (PPG, Rostered %, Overall Rank, ECR, Status)
+  - Better organization of player information for easier scanning
+  - Maintained essential information while reducing cognitive load
 
 ### Fixed
 - **Team Matching**: Resolved issue where user's team wasn't being correctly identified
   - Fixed logic in `getMyTeam` function to properly match owner display names
   - Removed debug information and console logs
+  - Proper fallback hierarchy for team name display
 - **Bye Week API Integration**: Implemented graceful degradation for bye week failures
   - App continues to function when bye week API fails
   - No user-facing errors or broken functionality
   - Clean error handling without breaking user experience
+- **Component Dependencies**: Resolved missing component import issues
+  - Fixed broken imports in UI components (alert, avatar, badge, dialog, dropdown)
+  - Removed dependencies on non-existent local components
+  - Improved build stability and type safety
+- **TypeScript Type Safety**: Enhanced type checking and error prevention
+  - Replaced `any` types with proper type guards and assertions
+  - Added missing interface properties (age field for SleeperPlayer)
+  - Better error handling in API routes and data processing
 
 ### Removed
 - **Debug Code**: Cleaned up all debugging and console logging
 - **Unused Features**: Removed incomplete standings and matchups sections
-- **Trade Analysis**: Removed trade analysis tool that was causing errors
-- **Unused State Variables**: Cleaned up unused React state variables
+- **Redundant Statistics**: Streamlined player card information display
+- **Deprecated Components**: Cleaned up unused PlayerCard component and related exports
+- **Unnecessary UI Elements**: Removed clutter from headers and navigation
 
 ### Technical Improvements
 - **Error Handling**: Better error handling for API failures

@@ -4,9 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
+    "build": "prisma generate && next build --turbopack",
+    "build:local": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "postinstall": "prisma generate",
+    "db:generate": "prisma generate",
+    "vercel-build": "prisma generate && next build --turbopack"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.7",

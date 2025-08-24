@@ -6,10 +6,12 @@ A comprehensive fantasy football management application built with Next.js, feat
 
 - **Multi-Account Support**: Manage multiple Sleeper accounts from one dashboard
 - **League Management**: View and manage all your fantasy football leagues
-- **Player Analytics**: Comprehensive player statistics and rankings
-- **Team Rosters**: Detailed roster management with player cards
-- **Real-time Data**: Live updates from Sleeper API
-- **Responsive Design**: Works seamlessly on desktop and mobile
+- **My Team Dashboard**: Comprehensive view of your team with starters, bench, and taxi squad
+- **Player Analytics**: Streamlined player cards with value metrics and key information
+- **Team Rosters**: Detailed roster view for all teams in your league
+- **Cached Data**: Server-side caching for improved performance and reliability
+- **Mobile-First Design**: Optimized for mobile with responsive layouts
+- **Taxi Squad Support**: Full support for taxi squad players and management
 
 ## 🚀 Getting Started
 
@@ -44,26 +46,29 @@ Comprehensive documentation is available in the [`docs/`](./docs/) folder:
 - **[📖 Documentation Index](./docs/README.md)** - Overview of all documentation
 - **[🏈 Sleeper API Reference](./docs/SLEEPER_API.md)** - Complete API documentation
 - **[🔧 Development Guide](./docs/DEVELOPMENT.md)** - Setup and development workflow *(Coming Soon)*
-- **[🚀 Deployment Guide](./docs/DEPLOYMENT.md)** - Production deployment *(Coming Soon)*
+- **[🚀 Deployment Guide](./docs/DEPLOYMENT.md)** - Vercel deployment and configuration
 - **[📖 User Guide](./docs/USER_GUIDE.md)** - How to use the dashboard *(Coming Soon)*
 
 ## 🛠️ Tech Stack
 
-- **Framework**: [Next.js 14](https://nextjs.org/) with App Router
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+- **Framework**: [Next.js 15](https://nextjs.org/) with App Router and Turbopack
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) with mobile-first design
 - **Authentication**: Custom auth system with NextAuth.js
 - **API Integration**: [Sleeper Fantasy Football API](https://docs.sleeper.com/)
-- **Database**: Prisma with PostgreSQL
-- **Language**: TypeScript
+- **Caching**: Server-side filesystem caching for performance
+- **UI Components**: Custom component library with HeadlessUI
+- **Language**: TypeScript with strict type checking
 
 ## 🔌 API Integration
 
 This application integrates with the Sleeper Fantasy Football API to provide:
 
-- User account management
-- League and roster data
-- Player statistics and rankings
-- Real-time updates
+- User account management and multi-account support
+- League and roster data (including taxi squads)
+- Player statistics with calculated value metrics
+- Cached data for improved performance
+- Bye week information from NFL schedules
+- Graceful error handling and fallback systems
 
 See [Sleeper API Documentation](./docs/SLEEPER_API.md) for complete endpoint and data structure details.
 
@@ -72,12 +77,17 @@ See [Sleeper API Documentation](./docs/SLEEPER_API.md) for complete endpoint and
 ```
 my-project/
 ├── docs/                   # Documentation
+│   ├── README.md          # Documentation index
+│   └── SLEEPER_API.md     # API documentation
 ├── src/
 │   ├── app/               # Next.js app router
 │   │   ├── dashboard/     # Dashboard pages
-│   │   └── api/          # API routes
+│   │   │   └── league/[id]/ # League-specific pages
+│   │   ├── api/          # API routes (players, byeweeks)
+│   │   └── admin/        # Admin panel for cache management
 │   ├── components/        # Reusable UI components
 │   └── lib/              # Utility functions
+├── cache/                 # Server-side cache storage
 ├── prisma/                # Database schema
 └── public/                # Static assets
 ```
