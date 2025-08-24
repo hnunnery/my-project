@@ -22,7 +22,7 @@ https://api.sleeper.app/v1/
 
 ### Internal API Endpoints (Our Application)
 - `GET /api/players` - Cached NFL player data with daily refresh
-- `GET /api/byeweeks` - Cached bye week data with 30-day refresh
+
 
 ## 🏈 Data Structures
 
@@ -182,12 +182,7 @@ interface SleeperPlayer {
 - **Storage**: Server filesystem with JSON format
 - **Purpose**: Reduce API calls and improve page load performance
 
-### Bye Week Cache (`/api/byeweeks`)
-- **Source**: `GET https://api.sleeper.app/v1/schedules/nfl/{year}`
-- **Refresh**: Monthly (30-day cache) 
-- **Storage**: Server filesystem with JSON format
-- **Purpose**: Provide reliable bye week data when player data lacks it
-- **Fallback**: Graceful degradation when schedule API fails
+
 
 ## 🔗 Resources
 

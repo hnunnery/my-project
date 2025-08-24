@@ -83,7 +83,6 @@ interface LeagueData {
   users: SleeperUser[]
   rosters: SleeperRoster[]
   players: Record<string, SleeperPlayer>
-  byeWeeks: Record<string, number>
 }
 
 export default function LeaguePage() {
@@ -139,24 +138,9 @@ export default function LeaguePage() {
       
       console.log(`Fetched ${Object.keys(playersData.players).length} players (cached: ${playersData.cached}, last updated: ${new Date(playersData.lastUpdated).toLocaleString()})`)
       
-      // Fetch bye week data from our cache (optional - app continues without it)
-      let byeWeeks = {}
-      try {
-        const byeWeeksResponse = await fetch('/api/byeweeks')
-        if (byeWeeksResponse.ok) {
-          const byeWeeksData = await byeWeeksResponse.json()
-          byeWeeks = byeWeeksData.data || {}
-          console.log(`Fetched bye week data (cached: ${byeWeeksData.cached}, last updated: ${byeWeeksData.lastUpdated})`)
-        } else {
-          console.warn('Bye week API failed, continuing without bye week data')
-        }
-      } catch (error) {
-        console.warn('Bye week API error, continuing without bye week data:', error)
-      }
-      
       const players = playersData.players
       
-      setLeagueData({ league, users, rosters, players, byeWeeks })
+      setLeagueData({ league, users, rosters, players })
     } catch (error) {
       console.error('Error fetching league data:', error)
       setError(error instanceof Error ? error.message : 'Failed to fetch league data')
@@ -204,10 +188,7 @@ export default function LeaguePage() {
       return player.bye_week
     }
     
-    // Fallback to cached bye week data (only if available)
-    if (leagueData?.byeWeeks && Object.keys(leagueData.byeWeeks).length > 0) {
-      return leagueData.byeWeeks[player.team] || null
-    }
+
     
     return null
   }

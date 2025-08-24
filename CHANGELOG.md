@@ -8,11 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- **Bye Week Cache System**: Implemented server-side caching for NFL team bye week data
-  - New API endpoint `/api/byeweeks` for caching bye week information
-  - 30-day cache duration for static bye week data
-  - Admin panel integration for bye week cache management
-  - Graceful fallback when bye week API fails
+
+- **Persistent League Storage**: Implemented client-side caching for league data
+  - League data is now stored in localStorage and persists between sessions
+  - Automatic data freshness checking (1-hour cache validity)
+  - Graceful fallback to cached data when API calls fail
+  - Cache status indicators showing data age and freshness
+- **Enhanced Dashboard UX**: Improved user experience with better data management
+  - Admin panel moved below leagues section for better organization
+  - Added refresh button to force update stale data
+  - Visual indicators for data freshness (green for fresh, yellow for stale)
+  - Automatic loading of cached data when switching between saved accounts
 - **Taxi Squad Support**: Added comprehensive support for taxi squad players
   - Dedicated "Taxi Squad" section in "My Team" page
   - Taxi squad player cards with distinctive yellow styling
@@ -67,6 +73,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Enhanced mobile-first design with optimized image loading
 
 ### Removed
+- **Bye Week System**: Removed bye week API and caching functionality
+  - Deleted `/api/byeweeks` endpoint and related admin page
+  - Removed bye week data fetching from league pages
+  - Cleaned up bye week references from documentation
+  - Simplified league data structure (bye weeks will be re-implemented later)
 - **Debug Code**: Cleaned up all debugging and console logging
 - **Unused Features**: Removed incomplete standings and matchups sections
 - **Redundant Statistics**: Streamlined player card information display

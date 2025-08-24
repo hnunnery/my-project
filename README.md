@@ -83,7 +83,7 @@ my-project/
 │   ├── app/               # Next.js app router
 │   │   ├── dashboard/     # Dashboard pages
 │   │   │   └── league/[id]/ # League-specific pages
-│   │   ├── api/          # API routes (players, byeweeks)
+│   │   ├── api/          # API routes (players)
 │   │   └── admin/        # Admin panel for cache management
 │   ├── components/        # Reusable UI components
 │   └── lib/              # Utility functions

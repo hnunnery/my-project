@@ -166,7 +166,7 @@ After successful deployment:
 
 1. **Verify Database Connection**: Check logs for any database connection errors
 2. **Test Authentication**: Ensure NextAuth.js is working properly
-3. **Check API Routes**: Verify `/api/players` and `/api/byeweeks` endpoints
+3. **Check API Routes**: Verify `/api/players` endpoint
 4. **Monitor Performance**: Watch for any caching or performance issues
 
 ## 📝 Notes

@@ -47,8 +47,15 @@ export default function Dashboard() {
   } | null>(null)
   const [isLoadingSleeper, setIsLoadingSleeper] = useState(false)
   const [sleeperError, setSleeperError] = useState('')
+  const [storedLeagues, setStoredLeagues] = useState<{
+    [username: string]: {
+      user: SleeperUser
+      leagues: SleeperLeague[]
+      lastUpdated: number
+    }
+  }>({})
 
-  // Load saved accounts from localStorage on component mount
+  // Load saved accounts and stored leagues from localStorage on component mount
   useEffect(() => {
     const saved = localStorage.getItem('sleeperAccounts')
     if (saved) {
@@ -65,7 +72,28 @@ export default function Dashboard() {
         console.error('Error loading saved accounts:', error)
       }
     }
+
+    // Load stored leagues
+    const stored = localStorage.getItem('sleeperLeagues')
+    if (stored) {
+      try {
+        const leagues = JSON.parse(stored)
+        setStoredLeagues(leagues)
+      } catch (error) {
+        console.error('Error loading stored leagues:', error)
+      }
+    }
   }, [])
+
+  // Auto-load stored data when username changes
+  useEffect(() => {
+    if (sleeperUsername && storedLeagues[sleeperUsername]) {
+      const storedData = storedLeagues[sleeperUsername]
+      setSleeperData({ user: storedData.user, leagues: storedData.leagues })
+    } else {
+      setSleeperData(null)
+    }
+  }, [sleeperUsername, storedLeagues])
 
   // Save accounts to localStorage whenever they change
   useEffect(() => {
@@ -75,6 +103,15 @@ export default function Dashboard() {
       localStorage.removeItem('sleeperAccounts')
     }
   }, [savedAccounts])
+
+  // Save leagues to localStorage whenever they change
+  useEffect(() => {
+    if (Object.keys(storedLeagues).length > 0) {
+      localStorage.setItem('sleeperLeagues', JSON.stringify(storedLeagues))
+    } else {
+      localStorage.removeItem('sleeperLeagues')
+    }
+  }, [storedLeagues])
 
   const saveAccount = (user: SleeperUser) => {
     const existingAccount = savedAccounts.find(acc => acc.userId === user.user_id)
@@ -152,8 +189,18 @@ export default function Dashboard() {
     setEditUsername('')
   }
 
-  const fetchSleeperData = async () => {
+  const fetchSleeperData = async (forceRefresh = false) => {
     if (!sleeperUsername.trim()) return
+
+    // Check if we have stored data and it's not stale (less than 1 hour old)
+    const storedData = storedLeagues[sleeperUsername]
+    const oneHour = 60 * 60 * 1000 // 1 hour in milliseconds
+    
+    if (!forceRefresh && storedData && (Date.now() - storedData.lastUpdated) < oneHour) {
+      // Use stored data if it's fresh
+      setSleeperData({ user: storedData.user, leagues: storedData.leagues })
+      return
+    }
 
     setIsLoadingSleeper(true)
     setSleeperError('')
@@ -182,10 +229,20 @@ export default function Dashboard() {
       
       const leagues: SleeperLeague[] = await leaguesResponse.json()
       
+      // Store the new data
+      const newData = { user, leagues, lastUpdated: Date.now() }
+      setStoredLeagues(prev => ({ ...prev, [sleeperUsername]: newData }))
+      
       setSleeperData({ user, leagues })
     } catch (error) {
       console.error('Error fetching Sleeper data:', error)
       setSleeperError(error instanceof Error ? error.message : 'Failed to fetch data')
+      
+      // If API fails but we have stored data, use that as fallback
+      if (storedData) {
+        setSleeperData({ user: storedData.user, leagues: storedData.leagues })
+        setSleeperError('Using cached data due to API error. Data may be outdated.')
+      }
     } finally {
       setIsLoadingSleeper(false)
     }
@@ -296,35 +353,7 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* Admin Panel */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-              ⚙️ Admin Panel
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
-              Manage system settings and data cache
-            </p>
-            <a 
-              href="/admin/players" 
-              className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              <svg className="-ml-1 mr-3 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              Player Cache Management
-            </a>
-            
-            <a 
-              href="/admin/byeweeks" 
-              className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mt-3"
-            >
-              <svg className="-ml-1 mr-3 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Bye Week Cache Management
-            </a>
-          </div>
+
 
           {/* Sleeper Integration */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-8">
@@ -347,14 +376,24 @@ export default function Dashboard() {
                 />
               </div>
               
-              <div className="flex items-end">
+              <div className="flex items-end gap-2">
                 <button
-                  onClick={fetchSleeperData}
+                  onClick={() => fetchSleeperData(false)}
                   disabled={isLoadingSleeper || !sleeperUsername.trim()}
                   className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoadingSleeper ? 'Loading...' : 'Fetch Leagues'}
                 </button>
+                {sleeperData && (
+                  <button
+                    onClick={() => fetchSleeperData(true)}
+                    disabled={isLoadingSleeper}
+                    className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Force refresh data from API"
+                  >
+                    🔄 Refresh
+                  </button>
+                )}
               </div>
             </div>
 
@@ -367,6 +406,41 @@ export default function Dashboard() {
             {/* Display Sleeper Data */}
             {sleeperData && (
               <div className="mt-6 space-y-4">
+                {/* Cache Status */}
+                {(() => {
+                  const storedData = storedLeagues[sleeperUsername]
+                  if (storedData) {
+                    const age = Date.now() - storedData.lastUpdated
+                    const isStale = age > 60 * 60 * 1000 // 1 hour
+                    const ageMinutes = Math.floor(age / (60 * 1000))
+                    const ageHours = Math.floor(age / (60 * 60 * 1000))
+                    
+                    return (
+                      <div className={`p-3 rounded-lg text-sm ${
+                        isStale 
+                          ? 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200' 
+                          : 'bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-200'
+                      }`}>
+                        <div className="flex items-center gap-2">
+                          <span>{isStale ? '⚠️' : '✅'}</span>
+                          <span>
+                            {isStale 
+                              ? `Data is ${ageHours > 0 ? `${ageHours}h ${ageMinutes % 60}m` : `${ageMinutes}m`} old` 
+                              : `Data is fresh (${ageMinutes}m old)`
+                            }
+                          </span>
+                        </div>
+                        {isStale && (
+                          <p className="mt-1 text-xs opacity-75">
+                            Click &quot;Refresh&quot; to get the latest data
+                          </p>
+                        )}
+                      </div>
+                    )
+                  }
+                  return null
+                })()}
+
                 {sleeperData.user && (
                   <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                     {sleeperData.user.avatar && (
@@ -420,6 +494,26 @@ export default function Dashboard() {
                 )}
               </div>
             )}
+          </div>
+
+          {/* Admin Panel - Moved below leagues */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+              ⚙️ Admin Panel
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
+              Manage system settings and data cache
+            </p>
+            <a 
+              href="/admin/players" 
+              className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              <svg className="-ml-1 mr-3 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              Player Cache Management
+            </a>
           </div>
         </div>
       </div>
