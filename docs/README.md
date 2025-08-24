@@ -10,6 +10,13 @@ Welcome to the Fantasy Football Dashboard documentation. This folder contains co
 - Current usage vs. available data
 - Future enhancement ideas
 
+### 🔐 [NextAuth.js Setup Guide](./NEXTAUTH_SETUP.md)
+- Local development configuration
+- Production deployment setup
+- Database integration with Prisma
+- Google OAuth configuration
+- Security best practices and troubleshooting
+
 ### ⚙️ [Player Cache System](./PLAYER_CACHE.md) *(Coming Soon)*
 - Caching architecture and implementation
 - API endpoints and data flow
