@@ -1,4 +1,4 @@
-const crypto = require('crypto')
+import crypto from 'crypto'
 
 // Generate a secure random string for NEXTAUTH_SECRET
 const secret = crypto.randomBytes(32).toString('hex')

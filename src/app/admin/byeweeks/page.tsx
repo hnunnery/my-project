@@ -36,7 +36,7 @@ export default function ByeWeekCachePage() {
       } else {
         setMessage('Failed to fetch cache status')
       }
-    } catch (error) {
+    } catch {
       setMessage('Error fetching cache status')
     } finally {
       setIsLoading(false)
@@ -57,14 +57,13 @@ export default function ByeWeekCachePage() {
       })
       
       if (response.ok) {
-        const data = await response.json()
         setMessage('Cache refreshed successfully!')
         // Refresh the status
         await fetchCacheStatus()
       } else {
         setMessage('Failed to refresh cache')
       }
-    } catch (error) {
+    } catch {
       setMessage('Error refreshing cache')
     } finally {
       setIsRefreshing(false)

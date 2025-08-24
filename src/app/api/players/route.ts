@@ -108,7 +108,7 @@ async function fetchFreshData(): Promise<Record<string, SleeperPlayer>> {
   }
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Check if we have valid cached data
     const cachedData = readCachedData()

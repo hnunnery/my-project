@@ -10,7 +10,7 @@ export default function SignIn() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const router = useRouter()
-  const { data: session, status } = useSession()
+  const { status } = useSession()
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -42,7 +42,7 @@ export default function SignIn() {
         // Redirect to dashboard or home page
         router.push("/")
       }
-    } catch (error) {
+    } catch {
       setError("An error occurred. Please try again.")
     } finally {
       setIsLoading(false)

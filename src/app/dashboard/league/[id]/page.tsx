@@ -107,6 +107,7 @@ export default function LeaguePage() {
     if (leagueId) {
       fetchLeagueData()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [leagueId])
 
   const fetchLeagueData = async () => {
