@@ -1,7 +1,7 @@
 'use client'
 
 import { AuthGuard } from '@/components/auth-guard'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 
@@ -129,7 +129,7 @@ export default function Dashboard() {
     }
   }, [storedLeagues])
 
-  const saveAccount = (user: SleeperUser) => {
+  const saveAccount = useCallback((user: SleeperUser) => {
     const existingAccount = savedAccounts.find(acc => acc.userId === user.user_id)
     
     if (existingAccount) {
@@ -152,7 +152,7 @@ export default function Dashboard() {
       }
       setSavedAccounts(prev => [...prev, newAccount])
     }
-  }
+  }, [savedAccounts])
 
   const setDefaultAccount = (accountId: string) => {
     setSavedAccounts(prev => prev.map(acc => ({
@@ -205,7 +205,7 @@ export default function Dashboard() {
     setEditUsername('')
   }
 
-  const fetchSleeperData = async (forceRefresh = false) => {
+  const fetchSleeperData = useCallback(async (forceRefresh = false) => {
     if (!sleeperUsername.trim()) return
 
     // Check if we have stored data and it's not stale (less than 24 hours old)
@@ -262,7 +262,7 @@ export default function Dashboard() {
     } finally {
       setIsLoadingSleeper(false)
     }
-  }
+  }, [sleeperUsername, storedLeagues, saveAccount])
 
   // Auto-fetch data for default account after function is defined
   useEffect(() => {
