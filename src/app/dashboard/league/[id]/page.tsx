@@ -2,7 +2,7 @@
 
 import { AuthGuard } from '@/components/auth-guard'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -78,6 +78,12 @@ interface SleeperPlayer {
   opponent?: string
 }
 
+interface DynastyValue {
+  dynastyValue: number | null;
+  trend7d: number | null;
+  trend30d: number | null;
+}
+
 interface LeagueData {
   league: SleeperLeague
   users: SleeperUser[]
@@ -98,6 +104,10 @@ export default function LeaguePage() {
   // Player analysis state
   const [startSitPlayer1, setStartSitPlayer1] = useState('')
   const [startSitPlayer2, setStartSitPlayer2] = useState('')
+  
+  // Dynasty values state
+  const [dynastyValues, setDynastyValues] = useState<Record<string, DynastyValue>>({})
+  const [dynastyValuesLoading, setDynastyValuesLoading] = useState(false)
   const [draftPlayerX, setDraftPlayerX] = useState('')
   const [draftPlayerY, setDraftPlayerY] = useState('')
   const [searchResults, setSearchResults] = useState<SleeperPlayer[]>([])
@@ -108,6 +118,8 @@ export default function LeaguePage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [leagueId])
+
+
 
   const fetchLeagueData = async () => {
     setIsLoading(true)
@@ -162,6 +174,47 @@ export default function LeaguePage() {
     // Use the best available name field
     return (player as SleeperPlayer & { full_name?: string }).full_name || player.name || 'Unknown Player'
   }
+
+  const fetchDynastyValues = useCallback(async (playerIds: string[]) => {
+    if (playerIds.length === 0) return;
+    
+    setDynastyValuesLoading(true);
+    try {
+      console.log('Requesting dynasty values for player IDs:', playerIds.slice(0, 10));
+      const response = await fetch('/api/dynasty/values/batch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ playerIds })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Dynasty values fetched:', data);
+        console.log('Values received for players:', Object.keys(data.values));
+        setDynastyValues(data.values);
+      }
+    } catch (error) {
+      console.error('Error fetching dynasty values:', error);
+    } finally {
+      setDynastyValuesLoading(false);
+    }
+  }, []);
+
+  // Fetch dynasty values when league data is available
+  useEffect(() => {
+    if (leagueData?.players && Object.keys(leagueData.players).length > 0) {
+      const playerIds = Object.keys(leagueData.players);
+      console.log('Fetching dynasty values for', playerIds.length, 'players');
+      console.log('Sample player IDs:', playerIds.slice(0, 5));
+      fetchDynastyValues(playerIds);
+    }
+  }, [leagueData, fetchDynastyValues]);
+
+  // Debug dynasty values state
+  useEffect(() => {
+    console.log('Dynasty values state updated:', dynastyValues);
+    console.log('Dynasty values loading:', dynastyValuesLoading);
+  }, [dynastyValues, dynastyValuesLoading]);
 
   const getPlayerPosition = (playerId: string) => {
     const player = leagueData?.players[playerId]
@@ -399,6 +452,8 @@ export default function LeaguePage() {
             <p className="text-gray-500 dark:text-gray-400 text-sm">
               Season {leagueData.league.season} • {leagueData.league.settings.num_teams} teams
             </p>
+            
+
           </div>
 
           <div className="border-b border-gray-200 dark:border-gray-700 mb-6 sm:mb-8">
@@ -516,17 +571,19 @@ export default function LeaguePage() {
                                 <div className="flex w-0 flex-1">
                                   <div className="relative -mr-px inline-flex w-0 flex-1 items-center justify-center gap-x-2 rounded-bl-lg border border-transparent py-2 text-xs font-medium text-gray-900 dark:text-white">
                                     <span className="text-xs text-gray-500 dark:text-gray-400">Value</span>
-                                    <span className="text-xs font-medium text-gray-900 dark:text-white">
-                                      {(() => {
-                                        const player = leagueData?.players[playerId]
-                                        // Calculate a simple value score based on available data
-                                        if (player?.fantasy_points_ppr && player?.rank_position) {
-                                          const value = Math.max(0, Math.round((player.fantasy_points_ppr / player.rank_position) * 100))
-                                          return value.toString()
-                                        }
-                                        return 'N/A'
-                                      })()}
-                                    </span>
+                                                                          <span className="text-xs font-medium text-gray-900 dark:text-white">
+                                        {(() => {
+                                          if (dynastyValuesLoading) {
+                                            return '...';
+                                          }
+                                          const dynastyValue = dynastyValues[playerId];
+                                          console.log(`Player ${playerId} dynasty value:`, dynastyValue);
+                                          if (dynastyValue?.dynastyValue !== null && dynastyValue?.dynastyValue !== undefined) {
+                                            return dynastyValue.dynastyValue.toFixed(1);
+                                          }
+                                          return 'N/A';
+                                        })()}
+                                      </span>
                                   </div>
                                 </div>
                                 <div className="-ml-px flex w-0 flex-1">
@@ -613,13 +670,11 @@ export default function LeaguePage() {
                                     <span className="text-xs text-gray-500 dark:text-gray-400">Value</span>
                                     <span className="text-xs font-medium text-gray-900 dark:text-white">
                                       {(() => {
-                                        const player = leagueData?.players[playerId]
-                                        // Calculate a simple value score based on available data
-                                        if (player?.fantasy_points_ppr && player?.rank_position) {
-                                          const value = Math.max(0, Math.round((player.fantasy_points_ppr / player.rank_position) * 100))
-                                          return value.toString()
+                                        const dynastyValue = dynastyValues[playerId];
+                                        if (dynastyValue?.dynastyValue !== null && dynastyValue?.dynastyValue !== undefined) {
+                                          return dynastyValue.dynastyValue.toFixed(1);
                                         }
-                                        return 'N/A'
+                                        return 'N/A';
                                       })()}
                                     </span>
                                   </div>
@@ -709,13 +764,11 @@ export default function LeaguePage() {
                                       <span className="text-xs text-gray-500 dark:text-gray-400">Value</span>
                                       <span className="text-xs font-medium text-gray-900 dark:text-white">
                                         {(() => {
-                                          const player = leagueData?.players[playerId]
-                                          // Calculate a simple value score based on available data
-                                          if (player?.fantasy_points_ppr && player?.rank_position) {
-                                            const value = Math.max(0, Math.round((player.fantasy_points_ppr / player.rank_position) * 100))
-                                            return value.toString()
+                                          const dynastyValue = dynastyValues[playerId];
+                                          if (dynastyValue?.dynastyValue !== null && dynastyValue?.dynastyValue !== undefined) {
+                                            return dynastyValue.dynastyValue.toFixed(1);
                                           }
-                                          return 'N/A'
+                                          return 'N/A';
                                         })()}
                                       </span>
                                     </div>
@@ -941,13 +994,11 @@ export default function LeaguePage() {
                                        <span className="text-xs text-gray-500 dark:text-gray-400">Value</span>
                                        <span className="text-xs font-medium text-gray-900 dark:text-white">
                                          {(() => {
-                                           const player = leagueData?.players[playerId]
-                                           // Calculate a simple value score based on available data
-                                           if (player?.fantasy_points_ppr && player?.rank_position) {
-                                             const value = Math.max(0, Math.round((player.fantasy_points_ppr / player.rank_position) * 100))
-                                             return value.toString()
+                                           const dynastyValue = dynastyValues[playerId];
+                                           if (dynastyValue?.dynastyValue !== null && dynastyValue?.dynastyValue !== undefined) {
+                                             return dynastyValue.dynastyValue.toFixed(1);
                                            }
-                                           return 'N/A'
+                                           return 'N/A';
                                          })()}
                                        </span>
                                      </div>
@@ -1034,13 +1085,11 @@ export default function LeaguePage() {
                                          <span className="text-xs text-gray-500 dark:text-gray-400">Value</span>
                                          <span className="text-xs font-medium text-gray-900 dark:text-white">
                                            {(() => {
-                                             const player = leagueData?.players[playerId]
-                                             // Calculate a simple value score based on available data
-                                             if (player?.fantasy_points_ppr && player?.rank_position) {
-                                               const value = Math.max(0, Math.round((player.fantasy_points_ppr / player.rank_position) * 100))
-                                               return value.toString()
+                                             const dynastyValue = dynastyValues[playerId];
+                                             if (dynastyValue?.dynastyValue !== null && dynastyValue?.dynastyValue !== undefined) {
+                                               return dynastyValue.dynastyValue.toFixed(1);
                                              }
-                                             return 'N/A'
+                                             return 'N/A';
                                            })()}
                                          </span>
                                        </div>

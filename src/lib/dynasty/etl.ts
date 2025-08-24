@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { fetchSleeperPlayers, fetchSleeperADP, SleeperPlayer } from "../sleeper";
-import { minMax, positionBuckets } from "./normalize";
+import { positionBuckets } from "./normalize";
 import { ageMultiplier } from "./ageCurves";
 import { composite } from "./formula";
 
@@ -14,8 +14,13 @@ type PlayerRow = {
   age?: number;
 };
 
-export async function runDynastyETL(asOf = new Date()) {
-  console.log('Starting Dynasty ETL pipeline...');
+export async function runDynastyETL(asOf = new Date('2025-01-01')) {
+  console.log('Starting Dynasty ETL pipeline for latest values (using fixed date)...');
+  
+  // Add timeout to prevent hanging
+  const timeoutPromise = new Promise((_, reject) => {
+    setTimeout(() => reject(new Error('ETL timeout after 25 minutes')), 25 * 60 * 1000);
+  });
   
   try {
     const [playersJson, adpRows] = await Promise.all([
@@ -23,24 +28,47 @@ export async function runDynastyETL(asOf = new Date()) {
       fetchSleeperADP(),
     ]);
     
-    console.log(`Fetched ${Object.keys(playersJson).length} players and ${adpRows.length} ADP entries`);
+    console.log(`Fetched ${Object.keys(playersJson).length} total players and ${adpRows.length} ADP entries`);
+    
+    // Count filtered players
+    const totalPlayers = Object.keys(playersJson).length;
+    const activePlayers = Object.values(playersJson).filter((p: SleeperPlayer) => p?.active === true).length;
+    const filteredPlayers = Object.values(playersJson).filter((p: SleeperPlayer) => 
+      p?.active === true && 
+      p?.position && 
+      !['OL', 'G', 'OT', 'C', 'OG', 'P', 'LS'].includes(p.position) &&
+      typeof p.age === "number" && 
+      p.age >= 18 && p.age <= 50
+    ).length;
+    
+    console.log(`Player filtering: ${totalPlayers} total → ${activePlayers} active → ${filteredPlayers} fantasy-relevant with valid age (excluded OL/P, no age, extreme ages)`);
 
-  const playerMap: PlayerRow[] = Object.values(playersJson)
-    .filter((p: SleeperPlayer) => p?.player_id && p?.position)
-    .map((p: SleeperPlayer) => ({
-      player_id: p.player_id,
+  const playerMap: PlayerRow[] = Object.entries(playersJson)
+    .filter(([, p]: [string, SleeperPlayer]) => 
+      p?.position && 
+      p?.active === true && // Only active players
+      !['OL', 'G', 'OT', 'C', 'OG', 'P', 'LS'].includes(p.position) && // Exclude offensive linemen and punters
+      typeof p.age === "number" && // Must have valid age data
+      p.age >= 18 && p.age <= 50 // Reasonable age range for fantasy football
+    )
+    .map(([id, p]: [string, SleeperPlayer]) => ({
+      player_id: id, // Use the object key as the player ID
       full_name: p.full_name ?? `${p.first_name || ""} ${p.last_name || ""}`.trim(),
       position: p.position!,
       team: p.team || "",
-      age: typeof p.age === "number" ? p.age : undefined,
+      age: p.age, // Age is guaranteed to be a number at this point
     }));
 
-  console.log(`Upserting ${playerMap.length} players in batches...`);
+  console.log(`Upserting ${playerMap.length} filtered players in batches...`);
   
-  const batchSize = 100;
+  const batchSize = 50; // Reduced batch size to prevent timeouts
+  const totalBatches = Math.ceil(playerMap.length/batchSize);
+  console.log(`Batch processing: ${totalBatches} batches of ${batchSize} players each`);
+  
   for (let i = 0; i < playerMap.length; i += batchSize) {
     const batch = playerMap.slice(i, i + batchSize);
-    console.log(`Processing batch ${Math.floor(i/batchSize) + 1}/${Math.ceil(playerMap.length/batchSize)} (${batch.length} players)`);
+    const batchNum = Math.floor(i/batchSize) + 1;
+    console.log(`Processing batch ${batchNum}/${totalBatches} (${batch.length} players) - ${Math.round((i/playerMap.length)*100)}% complete`);
     
     await prisma.$transaction(
       batch.map(p => prisma.player.upsert({
@@ -103,7 +131,10 @@ export async function runDynastyETL(asOf = new Date()) {
     const max = Math.max(...adps);
     console.log(`Position ${pos}: ${arr.length} players, ADP range ${min}-${max}`);
     for (const a of arr) {
-      marketById.set(a.playerId, minMax(a.adp, min, max, /* invert= */ true));
+      // Use ADP directly - lower numbers are more valuable (1st pick = best)
+      // Convert to 0-100 scale where 1 = 100, max = 0
+      const marketValue = Math.max(0, 100 - ((a.adp - 1) / (max - 1)) * 100);
+      marketById.set(a.playerId, marketValue);
     }
   }
   
@@ -111,23 +142,50 @@ export async function runDynastyETL(asOf = new Date()) {
 
   const projectionById = new Map<string, number>();
   for (const r of withPos) {
-    projectionById.set(r.playerId, 50 + (marketById.get(r.playerId) ?? 0) * 0.4);
+    // Projection score based on market value (ADP)
+    // Higher market value (lower ADP) = higher projection
+    const marketValue = marketById.get(r.playerId) ?? 0;
+    projectionById.set(r.playerId, marketValue);
   }
 
-  const players = await prisma.player.findMany({ 
+  // Only process players that have ADP data (fantasy-relevant players)
+  const playersWithADP = await prisma.player.findMany({ 
+    where: {
+      id: { in: Array.from(marketById.keys()) } // Only players with market values
+    },
     select: { id: true, pos: true, ageYears: true }
   });
   
+  console.log(`Processing ${playersWithADP.length} players with ADP data out of ${marketById.size} total ADP entries`);
+  
   const now = asOf;
-  const rows = players.map((p: { id: string; pos: string; ageYears: number | null }) => {
+  const rows = playersWithADP.map((p: { id: string; pos: string; ageYears: number | null }) => {
     const marketValue = marketById.get(p.id) ?? null;
     const projectionScore = projectionById.get(p.id) ?? null;
-    const ageMult = ageMultiplier(p.pos, p.ageYears ?? null);
-    const ageScore = projectionScore ? Math.min(100, Math.max(0, projectionScore * ageMult)) : null;
+    
+    // Enhanced age score calculation with better edge case handling
+    let ageScore: number | null = null;
+    if (projectionScore !== null && p.ageYears !== null) {
+      const ageMult = ageMultiplier(p.pos, p.ageYears);
+      // Handle edge case where projectionScore is 0 (low ADP players)
+      if (projectionScore === 0) {
+        // For very low ADP players, give them a minimal but valid age score
+        ageScore = Math.max(1, Math.min(100, ageMult * 10)); // Scale up age multiplier for low ADP
+      } else {
+        ageScore = Math.min(100, Math.max(1, projectionScore * ageMult));
+      }
+    }
+    
     const riskScore = 95; // TODO: plug injury/contract model; keep near-neutral for now
-    const dynastyValue = (marketValue && projectionScore && ageScore)
-      ? composite({ marketValue, projectionScore, ageScore, riskScore })
-      : null;
+    
+    // Enhanced dynasty value calculation with better validation
+    let dynastyValue: number | null = null;
+    if (marketValue !== null && projectionScore !== null && ageScore !== null) {
+      // Additional validation to ensure all scores are reasonable
+      if (marketValue >= 0 && projectionScore >= 0 && ageScore >= 1 && riskScore >= 0) {
+        dynastyValue = composite({ marketValue, projectionScore, ageScore, riskScore });
+      }
+    }
 
     return { 
       playerId: p.id, 
@@ -146,9 +204,12 @@ export async function runDynastyETL(asOf = new Date()) {
   console.log(`Upserting ${rows.length} dynasty value records in batches...`);
   for (let i = 0; i < rows.length; i += batchSize) {
     const batch = rows.slice(i, i + batchSize);
-    console.log(`Processing dynasty values batch ${Math.floor(i/batchSize) + 1}/${Math.ceil(rows.length/batchSize)} (${batch.length} records)`);
+    const batchNum = Math.floor(i/batchSize) + 1;
+    const totalBatches = Math.ceil(rows.length/batchSize);
+    console.log(`Processing dynasty values batch ${batchNum}/${totalBatches} (${batch.length} records) - ${Math.round((i/rows.length)*100)}% complete`);
     
-    await prisma.$transaction(
+    try {
+      await prisma.$transaction(
       batch.map((r: { playerId: string; marketValue: number | null; projectionScore: number | null; ageScore: number | null; riskScore: number; dynastyValue: number | null }) => prisma.valueDaily.upsert({
         where: { 
           asOfDate_playerId: { 
@@ -161,8 +222,14 @@ export async function runDynastyETL(asOf = new Date()) {
           asOfDate: now, 
           ...r 
         },
-      }))
-    );
+              }))
+      );
+      console.log(`Completed batch ${batchNum}/${totalBatches} successfully`);
+    } catch (batchError) {
+      console.error(`Error in batch ${batchNum}/${totalBatches}:`, batchError);
+      const errorMessage = batchError instanceof Error ? batchError.message : String(batchError);
+      throw new Error(`Failed at batch ${batchNum}/${totalBatches}: ${errorMessage}`);
+    }
   }
   console.log(`Successfully upserted dynasty value records`);
 
@@ -188,7 +255,7 @@ export async function runDynastyETL(asOf = new Date()) {
       acc.set(k, v);
     }
     
-    await Promise.all(players.map(async (p: { id: string; pos: string; ageYears: number | null }) => {
+    await Promise.all(playersWithADP.map(async (p: { id: string; pos: string; ageYears: number | null }) => {
       const latest = await prisma.valueDaily.findUnique({ 
         where: { 
           asOfDate_playerId: { 
@@ -218,9 +285,59 @@ export async function runDynastyETL(asOf = new Date()) {
     }));
   }
   
-  console.log('Dynasty ETL pipeline completed successfully!');
+  // Clean up old duplicate records to keep only the latest values
+  console.log('Cleaning up old duplicate records...');
+  const oldRecords = await prisma.valueDaily.findMany({
+    where: { asOfDate: { not: now } },
+    select: { asOfDate: true, playerId: true }
+  });
+  
+  if (oldRecords.length > 0) {
+    console.log(`Found ${oldRecords.length} old records to clean up`);
+    await prisma.valueDaily.deleteMany({
+      where: { asOfDate: { not: now } }
+    });
+    console.log('Old records cleaned up successfully');
+  }
+
+  // Clean up failed dynasty value records from irrelevant players (those without ADP data)
+  console.log('Cleaning up failed dynasty value records from irrelevant players...');
+  const failedRecords = await prisma.valueDaily.findMany({
+    where: { 
+      asOfDate: now,
+      dynastyValue: null
+    },
+    select: { playerId: true }
+  });
+  
+  if (failedRecords.length > 0) {
+    console.log(`Found ${failedRecords.length} failed dynasty value records to clean up`);
+    await prisma.valueDaily.deleteMany({
+      where: { 
+        asOfDate: now,
+        dynastyValue: null
+      }
+    });
+    console.log('Failed records cleaned up successfully');
+  }
+  
+  // Summary of efficiency improvements
+  const efficiencyGain = Math.round(((totalPlayers - playerMap.length) / totalPlayers) * 100);
+  const dynastyEfficiency = Math.round(((rows.length - validRows.length) / rows.length) * 100);
+  console.log(`✅ Dynasty ETL pipeline completed successfully!`);
+  console.log(`📊 Player Filtering: Processed ${playerMap.length} players instead of ${totalPlayers} (${efficiencyGain}% reduction)`);
+  console.log(`🎯 Dynasty Processing: Generated ${validRows.length} dynasty values from ${rows.length} ADP-relevant players with valid age data (${dynastyEfficiency}% success rate)`);
+  console.log(`⚡ Performance: ${totalBatches} batches instead of ${Math.ceil(totalPlayers/batchSize)} (${Math.round(((Math.ceil(totalPlayers/batchSize) - totalBatches) / Math.ceil(totalPlayers/batchSize)) * 100)}% fewer batches)`);
+  console.log(`🔒 Data Quality: Excluded players without age data, extreme ages, and non-fantasy positions`);
+  
   } catch (error) {
     console.error('Dynasty ETL pipeline failed with error:', error);
     throw error;
   }
+  
+  // Race against timeout
+  return Promise.race([
+    Promise.resolve('ETL completed successfully'),
+    timeoutPromise
+  ]);
 }

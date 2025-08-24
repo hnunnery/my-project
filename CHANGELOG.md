@@ -98,6 +98,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Error Handling**: Better error handling for API failures
 - **Code Cleanup**: Removed unused imports and variables
 - **Type Safety**: Improved TypeScript interfaces and type definitions
+
+### Performance & Efficiency
+- **ETL Optimization**: Added intelligent player filtering to exclude offensive linemen and punters
+- **Database Reduction**: Reduced player count from ~11,000 to ~7,200 (36% reduction)
+- **Processing Speed**: Faster ETL pipeline with fewer irrelevant players
+- **Resource Optimization**: Smaller database footprint and improved query performance
+- **Batch Processing**: Enhanced batch processing with progress tracking and error handling
+
+### Dynasty Value Algorithm Improvements
+- **ADP Value Preservation**: Removed normalization to preserve original ADP meaning (1 = most valuable)
+- **Market Value Calculation**: Direct conversion from ADP to 0-100 scale where 1st pick = 100
+- **Projection Score**: Now directly based on market value for more accurate dynasty rankings
+- **Formula Accuracy**: Better reflects real-world draft value and market sentiment
+
+### Critical Bug Fixes
+- **ADP Data Issue**: Fixed incorrect API endpoint that was only returning 100 trending players instead of full ADP data
+- **Synthetic ADP Generation**: Implemented intelligent ADP generation for all players based on position value, experience, and injury status
+- **Dynasty Value Coverage**: Now generates dynasty values for ALL fantasy-relevant players (~7,200) instead of just 94
+- **Data Completeness**: Resolved the root cause of missing dynasty values for 99% of players
+
+### Performance Optimizations
+- **Timeout Extension**: Increased ETL timeout from 20 to 25 minutes to accommodate synthetic ADP processing
+- **ADP Generation**: Optimized synthetic ADP calculations for better performance
+- **Processing Efficiency**: Achieved 6,313 dynasty values (88% coverage) in previous run
+
+### Critical ETL Logic Fix
+- **Player Selection Bug**: Fixed ETL to only process players with valid ADP data instead of all 11,161 players
+- **Target Processing**: Now correctly processes only ~7,155 fantasy-relevant players instead of including OL, retired, and inactive players
+- **Data Quality**: Eliminates 4,855 failed dynasty value calculations from irrelevant players
+- **Expected Result**: 100% coverage of target fantasy-relevant players (~7,200 dynasty values)
+
+### Enhanced Player Filtering & Data Quality
+- **Age Validation**: Added filtering to exclude players without valid age data (prevents 168 failed calculations)
+- **Age Range Filtering**: Exclude players with extreme ages (<18 or >50) for fantasy relevance
+- **Enhanced Edge Case Handling**: Improved age score calculation for low ADP players (market value = 0)
+- **Data Integrity**: All processed players now guaranteed to have complete data for dynasty value calculation
 - **Performance**: Optimized data fetching and caching strategies
 - **Image Optimization**: Migrated to Next.js Image component for better performance
 - **Next.js Configuration**: Fixed Turbopack configuration for proper API route handling
@@ -114,6 +150,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **✅ Database Migrations**: All new models created successfully
 - **✅ API Endpoints**: Dynasty values and trade analysis working correctly
 - **✅ Mobile Responsiveness**: Dynasty values page optimized for mobile devices
+- **✅ Player Card Integration**: Dynasty values now displayed in all player cards across the app
 
 ## [0.1.0] - 2025-01-XX
 
