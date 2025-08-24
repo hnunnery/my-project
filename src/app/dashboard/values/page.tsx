@@ -57,9 +57,14 @@ export default function ValuesPage() {
 
   return (
     <div className="p-4">
-      <h1 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
-        Dynasty Values
-      </h1>
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
+          Dynasty Values
+        </h1>
+        <a href="/dashboard/assistant" className="inline-flex items-center px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm">
+          🤖 Ask Assistant
+        </a>
+      </div>
       <div className="overflow-x-auto rounded border border-gray-200 dark:border-gray-700">
         <table className="min-w-full text-sm">
           <thead className="bg-gray-50 dark:bg-gray-800">
