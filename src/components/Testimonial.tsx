@@ -43,9 +43,9 @@ export function Testimonial() {
           <figure>
             <blockquote className="mt-6 text-lg font-semibold text-white sm:text-xl/8">
               <p>
-                "Amet amet eget scelerisque tellus sit neque faucibus non eleifend. Integer eu praesent at a. Ornare
+                &ldquo;Amet amet eget scelerisque tellus sit neque faucibus non eleifend. Integer eu praesent at a. Ornare
                 arcu gravida natoque erat et cursus tortor consequat at. Vulputate gravida sociis enim nullam
-                ultricies habitant malesuada lorem ac."
+                ultricies habitant malesuada lorem ac.&rdquo;
               </p>
             </blockquote>
             <figcaption className="mt-6 text-base text-white dark:text-gray-200">

@@ -14,7 +14,7 @@ export function LogoCloud() {
           src="https://tailwindcss.com/plus-assets/img/logos/158x48/transistor-logo-white.svg"
           width={158}
           height={48}
-          className="col-span-2 max-h-12 w-full object-contain not-dark:hidden lg:col-span-1"
+          className="col-span-2 max-h-12 w-full object-contain dark:hidden lg:col-span-1"
         />
 
         <img
@@ -29,7 +29,7 @@ export function LogoCloud() {
           src="https://tailwindcss.com/plus-assets/img/logos/158x48/reform-logo-white.svg"
           width={158}
           height={48}
-          className="col-span-2 max-h-12 w-full object-contain not-dark:hidden lg:col-span-1"
+          className="col-span-2 max-h-12 w-full object-contain dark:hidden lg:col-span-1"
         />
 
         <img
@@ -44,7 +44,7 @@ export function LogoCloud() {
           src="https://tailwindcss.com/plus-assets/img/logos/158x48/tuple-logo-white.svg"
           width={158}
           height={48}
-          className="col-span-2 max-h-12 w-full object-contain not-dark:hidden lg:col-span-1"
+          className="col-span-2 max-h-12 w-full object-contain dark:hidden lg:col-span-1"
         />
 
         <img
@@ -59,7 +59,7 @@ export function LogoCloud() {
           src="https://tailwindcss.com/plus-assets/img/logos/158x48/savvycal-logo-white.svg"
           width={158}
           height={48}
-          className="col-span-2 max-h-12 w-full object-contain not-dark:hidden sm:col-start-2 lg:col-span-1"
+          className="col-span-2 max-h-12 w-full object-contain dark:hidden sm:col-start-2 lg:col-span-1"
         />
 
         <img
@@ -74,7 +74,7 @@ export function LogoCloud() {
           src="https://tailwindcss.com/plus-assets/img/logos/158x48/statamic-logo-white.svg"
           width={158}
           height={48}
-          className="col-span-2 col-start-2 max-h-12 w-full object-contain not-dark:hidden sm:col-start-auto lg:col-span-1"
+          className="col-span-2 col-start-2 max-h-12 w-full object-contain dark:hidden sm:col-start-auto lg:col-span-1"
         />
       </div>
       <div className="mt-16 flex justify-center">

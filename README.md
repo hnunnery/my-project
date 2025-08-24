@@ -1,36 +1,106 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Fantasy Football Dashboard
 
-## Getting Started
+A comprehensive fantasy football management application built with Next.js, featuring Sleeper API integration for real-time league data and player analytics.
 
-First, run the development server:
+## 🏈 Features
 
+- **Multi-Account Support**: Manage multiple Sleeper accounts from one dashboard
+- **League Management**: View and manage all your fantasy football leagues
+- **Player Analytics**: Comprehensive player statistics and rankings
+- **Team Rosters**: Detailed roster management with player cards
+- **Real-time Data**: Live updates from Sleeper API
+- **Responsive Design**: Works seamlessly on desktop and mobile
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js 18+ 
+- npm, yarn, pnpm, or bun
+
+### Installation
+
+1. Clone the repository:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <repository-url>
+cd my-project
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install dependencies:
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Run the development server:
+```bash
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+4. Open [http://localhost:3000](http://localhost:3000) in your browser
 
-## Learn More
+## 📚 Documentation
 
-To learn more about Next.js, take a look at the following resources:
+Comprehensive documentation is available in the [`docs/`](./docs/) folder:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **[📖 Documentation Index](./docs/README.md)** - Overview of all documentation
+- **[🏈 Sleeper API Reference](./docs/SLEEPER_API.md)** - Complete API documentation
+- **[🔧 Development Guide](./docs/DEVELOPMENT.md)** - Setup and development workflow *(Coming Soon)*
+- **[🚀 Deployment Guide](./docs/DEPLOYMENT.md)** - Production deployment *(Coming Soon)*
+- **[📖 User Guide](./docs/USER_GUIDE.md)** - How to use the dashboard *(Coming Soon)*
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🛠️ Tech Stack
 
-## Deploy on Vercel
+- **Framework**: [Next.js 14](https://nextjs.org/) with App Router
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+- **Authentication**: Custom auth system with NextAuth.js
+- **API Integration**: [Sleeper Fantasy Football API](https://docs.sleeper.com/)
+- **Database**: Prisma with PostgreSQL
+- **Language**: TypeScript
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🔌 API Integration
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This application integrates with the Sleeper Fantasy Football API to provide:
+
+- User account management
+- League and roster data
+- Player statistics and rankings
+- Real-time updates
+
+See [Sleeper API Documentation](./docs/SLEEPER_API.md) for complete endpoint and data structure details.
+
+## 📁 Project Structure
+
+```
+my-project/
+├── docs/                   # Documentation
+├── src/
+│   ├── app/               # Next.js app router
+│   │   ├── dashboard/     # Dashboard pages
+│   │   └── api/          # API routes
+│   ├── components/        # Reusable UI components
+│   └── lib/              # Utility functions
+├── prisma/                # Database schema
+└── public/                # Static assets
+```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Update documentation as needed
+5. Submit a pull request
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+## 🔗 Resources
+
+- [Next.js Documentation](https://nextjs.org/docs)
+- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
+- [Sleeper API Documentation](https://docs.sleeper.com/)
+- [Prisma Documentation](https://www.prisma.io/docs)
+
+---
+
+*Built with ❤️ for fantasy football enthusiasts*
