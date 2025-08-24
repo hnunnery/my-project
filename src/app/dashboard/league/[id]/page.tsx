@@ -92,7 +92,7 @@ export default function LeaguePage() {
   const [leagueData, setLeagueData] = useState<LeagueData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
-  const [activeTab, setActiveTab] = useState<'myteam' | 'rosters' | 'analysis'>('myteam')
+  const [activeTab, setActiveTab] = useState<'myteam' | 'rosters' | 'analysis' | 'chat'>('myteam')
   const [searchTerm, setSearchTerm] = useState('')
   
   // Player analysis state
@@ -408,14 +408,15 @@ export default function LeaguePage() {
 
           <div className="border-b border-gray-200 dark:border-gray-700 mb-6 sm:mb-8">
             <nav className="-mb-px flex flex-wrap gap-2 sm:gap-8">
-              {[
-                { id: 'myteam', label: 'My Team', icon: '🏆' },
-                { id: 'rosters', label: 'Team Rosters', icon: '👥' },
-                { id: 'analysis', label: 'Player Analysis', icon: '📊' }
-              ].map((tab) => (
+                             {[
+                 { id: 'myteam', label: 'Team', icon: '🏆' },
+                 { id: 'rosters', label: 'Rosters', icon: '📋' },
+                 { id: 'analysis', label: 'Calculators', icon: '🧮' },
+                 { id: 'chat', label: 'Chat', icon: '💬' }
+               ].map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id as 'myteam' | 'rosters' | 'analysis')}
+                                     onClick={() => setActiveTab(tab.id as 'myteam' | 'rosters' | 'analysis' | 'chat')}
                   className={`py-2 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
                     activeTab === tab.id
                       ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
@@ -1082,11 +1083,25 @@ export default function LeaguePage() {
             </div>
           )}
 
-
+          {activeTab === 'chat' && (
+            <div className="space-y-4 sm:space-y-6">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Chat Assistant</h2>
+              
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 sm:p-6">
+                <div className="text-center py-8">
+                  <div className="text-4xl mb-4">💬</div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Chat Feature Coming Soon</h3>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Get instant answers to your fantasy football questions with our AI chat assistant.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {activeTab === 'analysis' && (
             <div className="space-y-4 sm:space-y-6">
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Player Analysis & Decision Making</h2>
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Fantasy Football Calculators</h2>
               
               {/* Start/Sit Decision Tool */}
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 sm:p-6">
