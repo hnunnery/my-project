@@ -92,7 +92,7 @@ export default function LeaguePage() {
   const [leagueData, setLeagueData] = useState<LeagueData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
-  const [activeTab, setActiveTab] = useState<'team' | 'rosters' | 'calculators' | 'chat'>('team')
+  const [activeTab, setActiveTab] = useState<'myteam' | 'rosters' | 'analysis'>('myteam')
   const [searchTerm, setSearchTerm] = useState('')
   
   // Player analysis state
@@ -173,7 +173,10 @@ export default function LeaguePage() {
     return player ? player.team : 'N/A'
   }
 
-
+  // const getPlayerInjuryStatus = (playerId: string) => {
+  //   const player = leagueData?.players[playerId]
+  //   return player?.injury_status || null
+  // }
 
   const getPlayerByeWeek = (playerId: string) => {
     const player = leagueData?.players[playerId]
@@ -406,14 +409,13 @@ export default function LeaguePage() {
           <div className="border-b border-gray-200 dark:border-gray-700 mb-6 sm:mb-8">
             <nav className="-mb-px flex flex-wrap gap-2 sm:gap-8">
               {[
-                { id: 'team', label: 'Team', icon: '🏆' },
-                { id: 'rosters', label: 'Rosters', icon: '📋' },
-                { id: 'calculators', label: 'Calculators', icon: '📊' },
-                { id: 'chat', label: 'Chat', icon: '🤖' }
+                { id: 'myteam', label: 'My Team', icon: '🏆' },
+                { id: 'rosters', label: 'Team Rosters', icon: '👥' },
+                { id: 'analysis', label: 'Player Analysis', icon: '📊' }
               ].map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id as 'team' | 'rosters' | 'calculators' | 'chat')}
+                  onClick={() => setActiveTab(tab.id as 'myteam' | 'rosters' | 'analysis')}
                   className={`py-2 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
                     activeTab === tab.id
                       ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
@@ -426,7 +428,7 @@ export default function LeaguePage() {
             </nav>
           </div>
 
-          {activeTab === 'team' && (
+          {activeTab === 'myteam' && (
             <div className="space-y-4 sm:space-y-6">
               <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{myTeam?.metadata?.team_name || myTeamOwner?.display_name || myTeamOwner?.username || 'Unknown Team'}</h2>
                
@@ -1082,7 +1084,7 @@ export default function LeaguePage() {
 
 
 
-          {activeTab === 'calculators' && (
+          {activeTab === 'analysis' && (
             <div className="space-y-4 sm:space-y-6">
               <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Player Analysis & Decision Making</h2>
               
@@ -1165,27 +1167,11 @@ export default function LeaguePage() {
                     </div>
                   ))}
                 </div>
-                             </div>
-             </div>
-           )}
-
-           {activeTab === 'chat' && (
-             <div className="space-y-4 sm:space-y-6">
-               <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">AI Fantasy Assistant</h2>
-               
-               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-                 <div className="text-center py-12">
-                   <div className="text-gray-400 dark:text-gray-500 text-4xl mb-4">🤖</div>
-                   <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">AI Chatbot Coming Soon</h3>
-                   <p className="text-gray-500 dark:text-gray-400">
-                     Get instant fantasy football advice, trade analysis, and roster optimization tips from our AI assistant.
-                   </p>
-                 </div>
-               </div>
-             </div>
-           )}
-         </div>
-       </div>
-     </AuthGuard>
-   )
- }
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </AuthGuard>
+  )
+}

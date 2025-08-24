@@ -6,10 +6,9 @@ A comprehensive fantasy football management application built with Next.js, feat
 
 - **Multi-Account Support**: Manage multiple Sleeper accounts from one dashboard
 - **League Management**: View and manage all your fantasy football leagues
-- **Team Dashboard**: Comprehensive view of your team with starters, bench, and taxi squad
-- **Rosters**: Detailed roster view for all teams in your league with search and filtering
-- **Calculators**: Player analysis tools for start/sit decisions and draft comparisons
-- **Chat**: AI fantasy football assistant for advice and analysis (coming soon)
+- **My Team Dashboard**: Comprehensive view of your team with starters, bench, and taxi squad
+- **Player Analytics**: Streamlined player cards with value metrics and key information
+- **Team Rosters**: Detailed roster view for all teams in your league
 - **Cached Data**: Server-side caching for improved performance and reliability
 - **Mobile-First Design**: Optimized for mobile with responsive layouts
 - **Taxi Squad Support**: Full support for taxi squad players and management
@@ -83,7 +82,7 @@ my-project/
 ├── src/
 │   ├── app/               # Next.js app router
 │   │   ├── dashboard/     # Dashboard pages
-│   │   │   └── league/[id]/ # League pages with Team, Rosters, Calculators, and Chat tabs
+│   │   │   └── league/[id]/ # League-specific pages
 │   │   ├── api/          # API routes (players)
 │   │   └── admin/        # Admin panel for cache management
 │   ├── components/        # Reusable UI components

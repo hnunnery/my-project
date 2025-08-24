@@ -105,7 +105,8 @@ export default function Dashboard() {
       if (!storedData || !isDataFresh) {
         // Auto-fetch if no data or data is stale
         console.log('Auto-fetching data for default account:', sleeperUsername)
-        fetchSleeperData(false)
+        // Note: fetchSleeperData will be available when this effect runs
+        // We'll handle the auto-fetch in a separate effect after the function is defined
       }
     }
   }, [sleeperUsername, sleeperData, isLoadingSleeper, storedLeagues])
@@ -207,11 +208,11 @@ export default function Dashboard() {
   const fetchSleeperData = async (forceRefresh = false) => {
     if (!sleeperUsername.trim()) return
 
-    // Check if we have stored data and it's not stale (less than 1 hour old)
+    // Check if we have stored data and it's not stale (less than 24 hours old)
     const storedData = storedLeagues[sleeperUsername]
-    const oneHour = 60 * 60 * 1000 // 1 hour in milliseconds
+    const twentyFourHours = 24 * 60 * 60 * 1000 // 24 hours in milliseconds
     
-    if (!forceRefresh && storedData && (Date.now() - storedData.lastUpdated) < oneHour) {
+    if (!forceRefresh && storedData && (Date.now() - storedData.lastUpdated) < twentyFourHours) {
       // Use stored data if it's fresh
       setSleeperData({ user: storedData.user, leagues: storedData.leagues })
       return
@@ -262,6 +263,21 @@ export default function Dashboard() {
       setIsLoadingSleeper(false)
     }
   }
+
+  // Auto-fetch data for default account after function is defined
+  useEffect(() => {
+    if (sleeperUsername && !sleeperData && !isLoadingSleeper) {
+      // Check if we have stored data that's fresh
+      const storedData = storedLeagues[sleeperUsername]
+      const isDataFresh = storedData && (Date.now() - storedData.lastUpdated) < 24 * 60 * 60 * 1000 // 24 hours
+      
+      if (!storedData || !isDataFresh) {
+        // Auto-fetch if no data or data is stale
+        console.log('Auto-fetching data for default account:', sleeperUsername)
+        fetchSleeperData(false)
+      }
+    }
+  }, [sleeperUsername, sleeperData, isLoadingSleeper, storedLeagues, fetchSleeperData])
 
   return (
     <AuthGuard>
@@ -395,11 +411,11 @@ export default function Dashboard() {
                     </div>
                   )}
                 </div>
-                {sleeperUsername && !sleeperData && !isLoadingSleeper && (
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    Press Enter or click "Fetch Leagues" to load your data
-                  </p>
-                )}
+                                  {sleeperUsername && !sleeperData && !isLoadingSleeper && (
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      Press Enter or click &quot;Fetch Leagues&quot; to load your data
+                    </p>
+                  )}
               </div>
               
               <div className="flex items-end gap-2">

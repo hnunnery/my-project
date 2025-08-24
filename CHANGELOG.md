@@ -8,12 +8,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- **New Tab Structure**: Redesigned league page navigation with improved tab names and icons
-  - "My Team" → "Team" (cleaner, more concise) with 🏆 trophy icon
-  - "Team Rosters" → "Rosters" (simplified naming) with 📋 clipboard icon for better list representation
-  - "Player Analysis" → "Calculators" (better describes functionality) with 📊 chart icon
-  - Added "Chat" tab with 🤖 robot icon for AI fantasy football assistant
-  - Updated tab content to reflect AI chatbot functionality with improved descriptions
 
 - **Persistent League Storage**: Implemented client-side caching for league data
   - League data is now stored in localStorage and persists between sessions
