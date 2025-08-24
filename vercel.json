@@ -9,5 +9,11 @@
   },
   "env": {
     "PRISMA_GENERATE_DATAPROXY": "true"
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/dynasty",
+      "schedule": "0 6 * * *"
+    }
+  ]
 }

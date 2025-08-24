@@ -57,3 +57,48 @@ model VerificationToken {
 
   @@unique([identifier, token])
 }
+
+model Player {
+  id        String   @id            // canonical Sleeper player_id
+  name      String
+  pos       String
+  team      String?
+  ageYears  Float?   // decimal age (e.g., 24.6)
+  aliases   Json?    // { sleeper: "...", fantasypros: "...", ktc: "..." }
+
+  snapshots Snapshot[]
+  values    ValueDaily[]
+  @@index([pos])
+}
+
+model Snapshot {
+  asOfDate DateTime
+  source   String
+  playerId String
+  rawValue Float
+  meta     Json?
+
+  player   Player @relation(fields: [playerId], references: [id])
+
+  @@id([asOfDate, source, playerId])
+  @@index([source, asOfDate])
+  @@index([playerId])
+}
+
+model ValueDaily {
+  asOfDate        DateTime
+  playerId        String
+  marketValue     Float?  // 0–100 after normalization
+  projectionScore Float?
+  ageScore        Float?
+  riskScore       Float?
+  dynastyValue    Float?
+  trend7d         Float?
+  trend30d        Float?
+
+  player          Player @relation(fields: [playerId], references: [id])
+
+  @@id([asOfDate, playerId])
+  @@index([asOfDate])
+  @@index([dynastyValue, playerId])
+}
