@@ -1,11 +1,15 @@
+import Image from 'next/image'
+
 export function Testimonial() {
   return (
     <div className="mx-auto mt-32 max-w-7xl sm:mt-56 sm:px-6 lg:px-8">
       <div className="relative overflow-hidden bg-gray-900 px-6 py-20 shadow-xl sm:rounded-3xl sm:px-10 sm:py-24 md:px-12 lg:px-20 dark:bg-black dark:shadow-none dark:after:pointer-events-none dark:after:absolute dark:after:inset-0 dark:after:inset-ring dark:after:inset-ring-white/10 dark:after:sm:rounded-3xl">
-        <img
+        <Image
           alt=""
           src="https://images.unsplash.com/photo-1601381718415-a05fb0a261f3?ixid=MXwxMjA3fDB8MHxwcm9maWxlLXBhZ2V8ODl8fHxlbnwwfHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1216&q=80"
           className="absolute inset-0 size-full object-cover brightness-150 saturate-0"
+          fill
+          sizes="100vw"
         />
         <div className="absolute inset-0 bg-gray-900/90 mix-blend-multiply" />
         <div aria-hidden="true" className="absolute -top-56 -left-80 transform-gpu blur-3xl">
@@ -30,15 +34,19 @@ export function Testimonial() {
           />
         </div>
         <div className="relative mx-auto max-w-2xl lg:mx-0">
-          <img
+          <Image
             alt=""
             src="https://tailwindcss.com/plus-assets/img/logos/workcation-logo-white.svg"
             className="h-12 w-auto dark:hidden"
+            width={48}
+            height={48}
           />
-          <img
+          <Image
             alt=""
             src="https://tailwindcss.com/plus-assets/img/logos/workcation-logo-white.svg"
             className="h-12 w-auto not-dark:hidden"
+            width={48}
+            height={48}
           />
           <figure>
             <blockquote className="mt-6 text-lg font-semibold text-white sm:text-xl/8">

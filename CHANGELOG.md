@@ -59,6 +59,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Replaced `any` types with proper type guards and assertions
   - Added missing interface properties (age field for SleeperPlayer)
   - Better error handling in API routes and data processing
+- **Image Optimization**: Replaced all `<img>` tags with Next.js `<Image />` components
+  - Updated 33 image instances across 10 components and pages
+  - Improved page load performance (LCP - Largest Contentful Paint)
+  - Reduced bandwidth usage through automatic image optimization
+  - Eliminated all ESLint warnings related to image usage
+  - Enhanced mobile-first design with optimized image loading
 
 ### Removed
 - **Debug Code**: Cleaned up all debugging and console logging
@@ -72,6 +78,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Code Cleanup**: Removed unused imports and variables
 - **Type Safety**: Improved TypeScript interfaces and type definitions
 - **Performance**: Optimized data fetching and caching strategies
+- **Image Optimization**: Migrated to Next.js Image component for better performance
+- **Next.js Configuration**: Fixed Turbopack configuration for proper API route handling
 
 ## [0.1.0] - 2025-01-XX
 

@@ -1,3 +1,5 @@
+import Image from 'next/image'
+
 export function Hero() {
   return (
     <div className="relative pt-14">
@@ -37,14 +39,14 @@ export function Hero() {
           </div>
           <div className="mt-16 flow-root sm:mt-24">
             <div className="-m-2 rounded-xl bg-gray-900/5 p-2 ring-1 ring-gray-900/10 ring-inset lg:-m-4 lg:rounded-2xl lg:p-4 dark:bg-white/2.5 dark:ring-white/10">
-              <img
+              <Image
                 alt="App screenshot"
                 src="https://tailwindcss.com/plus-assets/img/component-images/project-app-screenshot.png"
                 width={2432}
                 height={1442}
                 className="w-304 rounded-md bg-gray-50 shadow-xl ring-1 ring-gray-900/10 dark:hidden"
               />
-              <img
+              <Image
                 alt="App screenshot"
                 src="https://tailwindcss.com/plus-assets/img/component-images/dark-project-app-screenshot.png"
                 width={2432}

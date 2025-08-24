@@ -3,6 +3,7 @@
 import { AuthGuard } from '@/components/auth-guard'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 
 interface SleeperUser {
   user_id: string
@@ -215,10 +216,12 @@ export default function Dashboard() {
                   <div key={account.id} className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border-2 border-transparent hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
                     <div className="flex items-center gap-3 mb-3">
                       {account.avatar && (
-                        <img 
+                        <Image 
                           src={`https://sleepercdn.com/avatars/thumbs/${account.avatar}`}
                           alt="Avatar" 
                           className="w-10 h-10 rounded-full"
+                          width={40}
+                          height={40}
                         />
                       )}
                       <div className="flex-1">
@@ -367,10 +370,12 @@ export default function Dashboard() {
                 {sleeperData.user && (
                   <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                     {sleeperData.user.avatar && (
-                      <img 
+                      <Image 
                         src={`https://sleepercdn.com/avatars/thumbs/${sleeperData.user.avatar}`}
                         alt="Avatar" 
                         className="w-12 h-12 rounded-full"
+                        width={48}
+                        height={48}
                       />
                     )}
                     <div>

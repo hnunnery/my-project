@@ -5,6 +5,7 @@ import { AuthGuard } from '@/components/auth-guard'
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 
 interface SleeperUser {
   user_id: string
@@ -480,13 +481,12 @@ export default function LeaguePage() {
                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
                    <div className="flex items-center gap-2">
                      {myTeamOwner?.avatar && (
-                       <img 
+                       <Image 
                          src={`https://sleepercdn.com/avatars/thumbs/${myTeamOwner.avatar}`}
                          alt="Avatar" 
                          className="w-6 h-6 sm:w-8 sm:h-8 rounded-full border border-indigo-200 dark:border-indigo-700"
-                         onError={(e) => {
-                           e.currentTarget.style.display = 'none'
-                         }}
+                         width={32}
+                         height={32}
                        />
                      )}
                      <div>
@@ -555,19 +555,12 @@ export default function LeaguePage() {
                                   const player = leagueData?.players[playerId]
                                   if (player?.search_rank) {
                                     return (
-                                      <img
+                                      <Image
                                         src={`https://sleepercdn.com/content/nfl/players/thumb/${playerId}.jpg`}
                                         alt={getPlayerName(playerId)}
                                         className="w-full h-full object-cover"
-                                        onError={(e) => {
-                                          // Fallback to position letter if image fails
-                                          const img = e.currentTarget as HTMLImageElement
-                                          img.style.display = 'none'
-                                          const fallback = img.parentElement?.querySelector('.fallback-text')
-                                          if (fallback) {
-                                            fallback.classList.remove('hidden')
-                                          }
-                                        }}
+                                        width={40}
+                                        height={40}
                                       />
                                     )
                                   }
@@ -657,19 +650,12 @@ export default function LeaguePage() {
                                   const player = leagueData?.players[playerId]
                                   if (player?.search_rank) {
                                     return (
-                                      <img
+                                      <Image
                                         src={`https://sleepercdn.com/content/nfl/players/thumb/${playerId}.jpg`}
                                         alt={getPlayerName(playerId)}
                                         className="w-full h-full object-cover"
-                                        onError={(e) => {
-                                          // Fallback to position letter if image fails
-                                          const img = e.currentTarget as HTMLImageElement
-                                          img.style.display = 'none'
-                                          const fallback = img.parentElement?.querySelector('.fallback-text')
-                                          if (fallback) {
-                                            fallback.classList.remove('hidden')
-                                          }
-                                        }}
+                                        width={40}
+                                        height={40}
                                       />
                                     )
                                   }
@@ -758,23 +744,17 @@ export default function LeaguePage() {
                                 <div className="size-10 shrink-0 rounded-full bg-white dark:bg-white flex items-center justify-center outline -outline-offset-1 outline-black/5 dark:outline-white/10 overflow-hidden">
                                   {(() => {
                                     const player = leagueData?.players[playerId]
-                                    if (player?.search_rank) {
-                                      return (
-                                        <img
-                                          src={`https://sleepercdn.com/content/nfl/players/thumb/${playerId}.jpg`}
-                                          alt={getPlayerName(playerId)}
-                                          className="w-full h-full object-cover"
-                                          onError={(e) => {
-                                            const img = e.currentTarget as HTMLImageElement
-                                            img.style.display = 'none'
-                                            const fallback = img.parentElement?.querySelector('.fallback-text')
-                                            if (fallback) {
-                                              fallback.classList.remove('hidden')
-                                            }
-                                          }}
-                                        />
-                                      )
-                                    }
+                                                                      if (player?.search_rank) {
+                                    return (
+                                      <Image
+                                        src={`https://sleepercdn.com/content/nfl/players/thumb/${playerId}.jpg`}
+                                        alt={getPlayerName(playerId)}
+                                        className="w-full h-full object-cover"
+                                        width={40}
+                                        height={40}
+                                      />
+                                    )
+                                  }
                                     return null
                                   })()}
                                   <span className="fallback-text text-sm font-bold text-yellow-700 dark:text-yellow-300 hidden">
@@ -941,13 +921,12 @@ export default function LeaguePage() {
                     <div key={roster.roster_id} className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 sm:p-6">
                       <div className="flex items-center gap-3 mb-4">
                         {owner?.avatar && (
-                          <img 
+                          <Image 
                             src={`https://sleepercdn.com/avatars/thumbs/${owner.avatar}`}
                             alt="Avatar" 
                             className="w-8 h-8 sm:w-10 sm:h-10 rounded-full"
-                            onError={(e) => {
-                              e.currentTarget.style.display = 'none'
-                            }}
+                            width={40}
+                            height={40}
                           />
                         )}
                         <div className="flex-1 min-w-0">

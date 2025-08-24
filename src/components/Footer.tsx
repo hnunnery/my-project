@@ -1,3 +1,5 @@
+import Image from 'next/image'
+
 const footerNavigation = {
   solutions: [
     { name: 'Hosting', href: '#' },
@@ -29,15 +31,19 @@ export function Footer() {
     <footer className="relative mx-auto mt-32 max-w-7xl px-6 lg:px-8">
       <div className="border-t border-gray-900/10 py-16 sm:py-24 lg:py-32 dark:border-white/10">
         <div className="xl:grid xl:grid-cols-3 xl:gap-8">
-          <img
+          <Image
             alt="Company name"
             src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=600"
             className="h-9 dark:hidden"
+            width={36}
+            height={36}
           />
-          <img
+          <Image
             alt="Company name"
             src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=500"
             className="h-9 not-dark:hidden"
+            width={36}
+            height={36}
           />
           <div className="mt-16 grid grid-cols-2 gap-8 xl:col-span-2 xl:mt-0">
             <div className="md:grid md:grid-cols-2 md:gap-8">
