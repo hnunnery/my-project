@@ -13,21 +13,37 @@ This guide covers deploying the Fantasy Football Dashboard to various platforms.
 
 Add these environment variables in your Vercel dashboard:
 
+**CRITICAL: Do NOT include quotes around the values in Vercel dashboard**
+
 ```bash
 # Database
-DATABASE_URL="postgresql://username:password@host:port/database?schema=public"
+DATABASE_URL=postgresql://username:password@host:port/database?schema=public
 
 # NextAuth.js
-NEXTAUTH_URL="https://your-app.vercel.app"
-NEXTAUTH_SECRET="your-secret-key-here"
+NEXTAUTH_URL=https://your-app.vercel.app
+NEXTAUTH_SECRET=your-secret-key-here
 
 # OAuth Providers (Optional - only if you want Google sign-in)
-GOOGLE_CLIENT_ID="your-google-client-id"
-GOOGLE_CLIENT_SECRET="your-google-client-secret"
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
 
 # Prisma (automatically set)
-PRISMA_GENERATE_DATAPROXY="true"
+PRISMA_GENERATE_DATAPROXY=true
 ```
+
+### Environment Variable Formatting
+
+**Important**: When setting environment variables in Vercel, enter the values directly without quotes. The Vercel dashboard will handle the values correctly.
+
+**Correct format in Vercel dashboard:**
+- DATABASE_URL: `postgresql://username:password@host:port/database?sslmode=require&channel_binding=require`
+- NEXTAUTH_SECRET: `your-secret-key-here`
+- NEXTAUTH_URL: `https://yourdomain.com`
+
+**Incorrect format (will cause authentication failures):**
+- DATABASE_URL: `"postgresql://username:password@host:port/database?sslmode=require&channel_binding=require"`
+- NEXTAUTH_SECRET: `"your-secret-key-here"`
+- NEXTAUTH_URL: `"https://yourdomain.com"`
 
 ### Deployment Steps
 
@@ -70,6 +86,25 @@ The build process follows this sequence:
 
 ### Troubleshooting
 
+#### Authentication 500 Errors (Most Common Issue)
+
+If you're experiencing 500 errors during authentication (signup/signin), the most common cause is incorrect environment variable formatting:
+
+**Problem**: Quotes around environment variables in Vercel
+- **Symptom**: 500 errors on `/api/auth/register` and signin endpoints
+- **Cause**: Prisma cannot parse connection strings that include quotes
+- **Error message**: "the URL must start with the protocol `postgresql://` or `postgres://`"
+
+**Solution**: Remove quotes from all environment variables in Vercel dashboard
+1. Go to your Vercel project dashboard
+2. Navigate to Settings → Environment Variables
+3. Edit each variable to remove surrounding quotes
+4. Redeploy your application
+
+**Example of the fix:**
+- **Before**: `"postgresql://user:pass@host:port/db?sslmode=require"`
+- **After**: `postgresql://user:pass@host:port/db?sslmode=require`
+
 #### "Prisma Client not generated" Error
 This error occurs when Prisma Client isn't properly generated during build. Our configuration should prevent this, but if it occurs:
 
@@ -78,9 +113,10 @@ This error occurs when Prisma Client isn't properly generated during build. Our 
 3. Ensure `prisma` is in `devDependencies` in `package.json`
 
 #### Database Connection Issues
-1. Verify `DATABASE_URL` is correctly formatted
+1. Verify `DATABASE_URL` is correctly formatted (without quotes)
 2. Ensure database is accessible from Vercel's regions
 3. Check that database provider supports external connections
+4. For cloud databases like Neon, ensure SSL parameters are included: `?sslmode=require&channel_binding=require`
 
 #### Build Timeout
 If builds time out:
