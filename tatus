@@ -1,0 +1,25 @@
+[1mdiff --git a/src/app/api/auth/[...nextauth]/route.ts b/src/app/api/auth/[...nextauth]/route.ts[m
+[1mindex bc23801..3321031 100644[m
+[1m--- a/src/app/api/auth/[...nextauth]/route.ts[m
+[1m+++ b/src/app/api/auth/[...nextauth]/route.ts[m
+[36m@@ -1,4 +1,4 @@[m
+[31m-import NextAuth from "next-auth"[m
+[32m+[m[32mimport NextAuth from "next-auth/next"[m
+ import GoogleProvider from "next-auth/providers/google"[m
+ import CredentialsProvider from "next-auth/providers/credentials"[m
+ import { PrismaAdapter } from "@next-auth/prisma-adapter"[m
+[36m@@ -72,10 +72,10 @@[m [mconst handler = NextAuth({[m
+       return token[m
+     },[m
+     async session({ session, token }) {[m
+[31m-      if (token) {[m
+[31m-        session.user.id = token.id as string[m
+[31m-        session.user.email = token.email as string[m
+[31m-        session.user.name = token.name as string[m
+[32m+[m[32m      if (token && session.user) {[m
+[32m+[m[32m        (session.user as any).id = token.id as string[m
+[32m+[m[32m        (session.user as any).email = token.email as string[m
+[32m+[m[32m        (session.user as any).name = token.name as string[m
+       }[m
+       return session[m
+     },[m

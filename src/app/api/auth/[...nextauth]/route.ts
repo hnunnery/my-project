@@ -1,4 +1,4 @@
-import NextAuth from "next-auth"
+import NextAuth from "next-auth/next"
 import GoogleProvider from "next-auth/providers/google"
 import CredentialsProvider from "next-auth/providers/credentials"
 import { PrismaAdapter } from "@next-auth/prisma-adapter"
@@ -72,10 +72,10 @@ const handler = NextAuth({
       return token
     },
     async session({ session, token }) {
-      if (token) {
-        session.user.id = token.id as string
-        session.user.email = token.email as string
-        session.user.name = token.name as string
+      if (token && session.user) {
+        (session.user as any).id = token.id as string
+        (session.user as any).email = token.email as string
+        (session.user as any).name = token.name as string
       }
       return session
     },
