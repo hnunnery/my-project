@@ -104,7 +104,6 @@ export default function Dashboard() {
       
       if (!storedData || !isDataFresh) {
         // Auto-fetch if no data or data is stale
-        console.log('Auto-fetching data for default account:', sleeperUsername)
         // Note: fetchSleeperData will be available when this effect runs
         // We'll handle the auto-fetch in a separate effect after the function is defined
       }
@@ -129,7 +128,12 @@ export default function Dashboard() {
     }
   }, [storedLeagues])
 
-  const saveAccount = useCallback((user: SleeperUser) => {
+  const saveAccount = useCallback((user: SleeperUser | null) => {
+    // Guard against null/undefined user
+    if (!user || !user.user_id) {
+      return;
+    }
+
     const existingAccount = savedAccounts.find(acc => acc.userId === user.user_id)
     
     if (existingAccount) {
@@ -228,8 +232,10 @@ export default function Dashboard() {
       
       const user: SleeperUser = await userResponse.json()
       
-      // Save account automatically when fetching data
-      saveAccount(user)
+      // Save account automatically when fetching data (only if user is valid)
+      if (user && user.user_id) {
+        saveAccount(user)
+      }
       
       // Then get user's leagues
       const currentYear = new Date().getFullYear()
@@ -266,18 +272,20 @@ export default function Dashboard() {
 
   // Auto-fetch data for default account after function is defined
   useEffect(() => {
-    if (sleeperUsername && !sleeperData && !isLoadingSleeper) {
+    // Only auto-fetch if this is a saved account (not just typing in the input)
+    const isSavedAccount = savedAccounts.some(acc => acc.username === sleeperUsername)
+    
+    if (sleeperUsername && !sleeperData && !isLoadingSleeper && isSavedAccount) {
       // Check if we have stored data that's fresh
       const storedData = storedLeagues[sleeperUsername]
       const isDataFresh = storedData && (Date.now() - storedData.lastUpdated) < 24 * 60 * 60 * 1000 // 24 hours
       
       if (!storedData || !isDataFresh) {
         // Auto-fetch if no data or data is stale
-        console.log('Auto-fetching data for default account:', sleeperUsername)
         fetchSleeperData(false)
       }
     }
-  }, [sleeperUsername, sleeperData, isLoadingSleeper, storedLeagues, fetchSleeperData])
+  }, [sleeperUsername, sleeperData, isLoadingSleeper, storedLeagues, fetchSleeperData, savedAccounts])
 
   return (
     <AuthGuard>

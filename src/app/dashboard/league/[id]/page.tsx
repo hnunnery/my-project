@@ -135,7 +135,7 @@ export default function LeaguePage() {
         throw new Error('Failed to fetch player data')
       }
       
-      console.log(`Fetched ${Object.keys(playersData.players).length} players (cached: ${playersData.cached}, last updated: ${new Date(playersData.lastUpdated).toLocaleString()})`)
+
       
       const players = playersData.players
       
@@ -173,10 +173,7 @@ export default function LeaguePage() {
     return player ? player.team : 'N/A'
   }
 
-  // const getPlayerInjuryStatus = (playerId: string) => {
-  //   const player = leagueData?.players[playerId]
-  //   return player?.injury_status || null
-  // }
+
 
   const getPlayerByeWeek = (playerId: string) => {
     const player = leagueData?.players[playerId]
@@ -273,7 +270,6 @@ export default function LeaguePage() {
              const defaultAccount = savedAccounts.find((account: { username: string; isDefault: boolean }) => account.isDefault)
       if (defaultAccount) {
         defaultUsername = defaultAccount.username
-        console.log('Found default account:', defaultUsername)
       }
     } catch (error) {
       console.error('Error reading saved Sleeper accounts:', error)
@@ -304,7 +300,6 @@ export default function LeaguePage() {
       }
     
     // Fallback: if no saved account or roster not found, show first roster
-    console.log('No saved Sleeper account found or no matching roster, showing first roster as fallback')
     return leagueData.rosters[0]
   }
 
