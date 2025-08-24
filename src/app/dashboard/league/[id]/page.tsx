@@ -1,6 +1,7 @@
 'use client'
 
 import { AuthGuard } from '@/components/auth-guard'
+import DynastyAssistant from '@/components/dynasty-assistant'
 
 import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
@@ -1129,15 +1130,7 @@ export default function LeaguePage() {
             <div className="space-y-4 sm:space-y-6">
               <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Chat Assistant</h2>
               
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 sm:p-6">
-                <div className="text-center py-8">
-                  <div className="text-4xl mb-4">💬</div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Chat Feature Coming Soon</h3>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    Get instant answers to your fantasy football questions with our AI chat assistant.
-                  </p>
-                </div>
-              </div>
+              <DynastyAssistant leagueData={leagueData} dynastyValues={dynastyValues} />
             </div>
           )}
 

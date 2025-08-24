@@ -8,7 +8,20 @@ interface Message {
   timestamp: Date;
 }
 
-export default function DynastyAssistant() {
+interface DynastyAssistantProps {
+  leagueData?: {
+    league?: {
+      name?: string;
+    };
+  };
+  dynastyValues?: Record<string, {
+    dynastyValue: number | null;
+    trend7d: number | null;
+    trend30d: number | null;
+  }>;
+}
+
+export default function DynastyAssistant({ leagueData, dynastyValues }: DynastyAssistantProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
@@ -40,7 +53,7 @@ export default function DynastyAssistant() {
         },
         body: JSON.stringify({
           message: userMessage.content,
-          context: "Dynasty values updated daily at 06:00 UTC",
+          context: `Dynasty values updated daily at 06:00 UTC. League: ${leagueData?.league?.name || 'Unknown'}. Available dynasty values: ${Object.keys(dynastyValues || {}).length} players.`,
         }),
       });
 

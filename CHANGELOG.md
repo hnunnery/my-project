@@ -62,6 +62,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Removed risk score (was hardcoded to 95 for all players)
   - Changed from position-based ADP normalization to global ADP normalization
   - All positions now compete on the same value scale for fair cross-position comparisons
+- **UI Restructuring**: Moved AI assistant to league page chat tab
+  - Removed standalone `/dashboard/values` page
+  - Removed standalone `/dashboard/assistant` page
+  - AI assistant now integrated into league page chat tab for better context
+  - Dynasty values accessible through AI assistant within league context
 
 ### Fixed
 - **Team Matching**: Resolved issue where user's team wasn't being correctly identified

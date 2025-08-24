@@ -298,14 +298,6 @@ export default function Dashboard() {
             <p className="text-gray-600 dark:text-gray-400 mt-2">
               Manage your Sleeper fantasy football leagues
             </p>
-            <div className="flex gap-4 mt-4">
-              <a href="/dashboard/values" className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors">
-                📊 Dynasty Values
-              </a>
-              <a href="/dashboard/assistant" className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
-                🤖 Dynasty Assistant
-              </a>
-            </div>
           </div>
 
           {/* Saved Accounts */}

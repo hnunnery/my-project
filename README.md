@@ -139,13 +139,12 @@ dynastyValue = (
 
 ## 📱 Dynasty UI
 
-### Dynasty Values Page (`/dashboard/values`)
-- **Sortable Player Rankings** with dynasty values (highest first)
-- **Position and Team Information** for context
-- **Trend Indicators** with color coding (🟢 rising, 🔴 falling)
-- **Responsive Table Design** works on mobile and desktop
-- **Loading States** and comprehensive error handling
-- **Real-time Data** updated daily via automated pipeline
+### League Page Chat Tab (`/dashboard/league/[id]`)
+- **AI Assistant Chat**: Integrated dynasty fantasy football advice
+- **League Context**: Access dynasty values and analysis within league context
+- **Player Analysis**: Get instant answers about trades, roster decisions, and strategy
+- **Responsive Design**: Works on mobile and desktop
+- **Real-time Data**: Updated daily via automated pipeline
 
 ### API Endpoints
 - **`GET /api/dynasty/values`** - Player rankings with optional date filtering

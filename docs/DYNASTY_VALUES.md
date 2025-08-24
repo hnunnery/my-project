@@ -206,28 +206,13 @@ export function ageMultiplier(position: string, age: number | null): number {
 
 ### 🎨 UI Implementation Philosophy
 
-#### Dynasty Values Page (`/dashboard/values`)
+#### Dynasty Values Access
+**Purpose**: Access dynasty values and AI assistant through league page chat tab
+**Why**: Integrated experience within league context for better user workflow
 
-**Design Principles**:
-- **Performance first**: Handles 11,000+ players with efficient rendering
-- **Accessibility**: Screen reader friendly, keyboard navigation
-- **Responsive**: Works on mobile and desktop
-- **Progressive enhancement**: Loading states, error handling
-
-**Key Features**:
-- **Sortable by dynasty value** (highest first by default)
-- **Trend indicators** with color coding (green = rising, red = falling)
-- **Position and team display** for context
-- **Empty state handling** when ETL hasn't run
-
-```tsx
-// Trend color logic
-const trendColor = (trend: number | null) => {
-  if (!trend) return "text-gray-500";
-  return trend > 0 
-    ? "text-green-600 dark:text-green-400" 
-    : "text-red-600 dark:text-red-400";
-};
+```typescript
+// Access via league page chat tab
+// League page: /dashboard/league/[id] → Chat tab → AI Assistant
 ```
 
 ### ⚡ Performance Optimizations
