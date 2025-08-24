@@ -72,9 +72,14 @@ export function Header() {
               Sign out
             </button>
           ) : (
-            <a href="/signin" className="text-sm/6 font-semibold text-gray-900 dark:text-white">
-              Sign in <span aria-hidden="true">&rarr;</span>
-            </a>
+            <>
+              <a href="/signup" className="text-sm/6 font-semibold text-gray-900 dark:text-white">
+                Sign up
+              </a>
+              <a href="/signin" className="text-sm/6 font-semibold text-gray-900 dark:text-white">
+                Sign in <span aria-hidden="true">&rarr;</span>
+              </a>
+            </>
           )}
         </div>
       </nav>
@@ -135,12 +140,20 @@ export function Header() {
                     Sign out
                   </button>
                 ) : (
-                  <a
-                    href="/signin"
-                    className="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-gray-900 hover:bg-gray-50 dark:text-white dark:hover:bg-white/5"
-                  >
-                    Sign in
-                  </a>
+                  <div className="space-y-2">
+                    <a
+                      href="/signup"
+                      className="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-gray-900 hover:bg-gray-50 dark:text-white dark:hover:bg-white/5"
+                    >
+                      Sign up
+                    </a>
+                    <a
+                      href="/signin"
+                      className="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-gray-900 hover:bg-gray-50 dark:text-white dark:hover:bg-white/5"
+                    >
+                      Sign in
+                    </a>
+                  </div>
                 )}
               </div>
             </div>

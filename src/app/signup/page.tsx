@@ -1,15 +1,17 @@
 "use client"
 
-import { signIn, useSession } from "next-auth/react"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
 import Link from "next/link"
 
-export default function SignIn() {
+export default function SignUp() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [name, setName] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
+  const [success, setSuccess] = useState("")
   const router = useRouter()
   const { data: session, status } = useSession()
 
@@ -29,19 +31,30 @@ export default function SignIn() {
     e.preventDefault()
     setIsLoading(true)
     setError("")
+    setSuccess("")
 
     try {
-      const result = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          name,
+        }),
       })
 
-      if (result?.error) {
-        setError("Invalid email or password")
+      const data = await response.json()
+
+      if (!response.ok) {
+        setError(data.error || "An error occurred during registration")
       } else {
-        // Redirect to dashboard or home page
-        router.push("/")
+        setSuccess("Account created successfully! Redirecting to sign in...")
+        setTimeout(() => {
+          router.push("/signin")
+        }, 2000)
       }
     } catch (error) {
       setError("An error occurred. Please try again.")
@@ -50,18 +63,8 @@ export default function SignIn() {
     }
   }
 
-
-
   return (
     <>
-      {/*
-        This example requires updating your template:
-
-        ```
-        <html class="h-full bg-white dark:bg-gray-900">
-        <body class="h-full">
-        ```
-      */}
       <div className="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-sm">
           <img
@@ -75,7 +78,7 @@ export default function SignIn() {
             className="mx-auto h-10 w-auto not-dark:hidden"
           />
           <h2 className="mt-10 text-center text-2xl/9 font-bold tracking-tight text-gray-900 dark:text-white">
-            Sign in to your account
+            Create your account
           </h2>
         </div>
 
@@ -87,6 +90,30 @@ export default function SignIn() {
               </div>
             )}
             
+            {success && (
+              <div className="rounded-md bg-green-50 p-4 dark:bg-green-900/20">
+                <div className="text-sm text-green-700 dark:text-green-400">{success}</div>
+              </div>
+            )}
+            
+            <div>
+              <label htmlFor="name" className="block text-sm/6 font-medium text-gray-900 dark:text-gray-100">
+                Full Name (Optional)
+              </label>
+              <div className="mt-2">
+                <input
+                  id="name"
+                  name="name"
+                  type="text"
+                  autoComplete="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  disabled={isLoading}
+                  className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 dark:bg-white/5 dark:text-white dark:outline-white/10 dark:placeholder:text-gray-500 dark:focus:outline-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                />
+              </div>
+            </div>
+
             <div>
               <label htmlFor="email" className="block text-sm/6 font-medium text-gray-900 dark:text-gray-100">
                 Email address
@@ -107,26 +134,16 @@ export default function SignIn() {
             </div>
 
             <div>
-              <div className="flex items-center justify-between">
-                <label htmlFor="password" className="block text-sm/6 font-medium text-gray-900 dark:text-gray-100">
-                  Password
-                </label>
-                <div className="text-sm">
-                  <a
-                    href="#"
-                    className="font-semibold text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
-                  >
-                    Forgot password?
-                  </a>
-                </div>
-              </div>
+              <label htmlFor="password" className="block text-sm/6 font-medium text-gray-900 dark:text-gray-100">
+                Password
+              </label>
               <div className="mt-2">
                 <input
                   id="password"
                   name="password"
                   type="password"
                   required
-                  autoComplete="current-password"
+                  autoComplete="new-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={isLoading}
@@ -141,20 +158,18 @@ export default function SignIn() {
                 disabled={isLoading}
                 className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:bg-indigo-500 dark:shadow-none dark:hover:bg-indigo-400 dark:focus-visible:outline-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isLoading ? "Signing in..." : "Sign in"}
+                {isLoading ? "Creating account..." : "Create account"}
               </button>
             </div>
           </form>
 
-
-
           <p className="mt-10 text-center text-sm/6 text-gray-500 dark:text-gray-400">
-            Not a member?{' '}
+            Already have an account?{' '}
             <Link
-              href="/signup"
+              href="/signin"
               className="font-semibold text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
             >
-              Start a 14 day free trial
+              Sign in here
             </Link>
           </p>
         </div>
