@@ -13,7 +13,7 @@ export default function SignUp() {
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
   const router = useRouter()
-  const { data: session, status } = useSession()
+  const { status } = useSession()
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -56,7 +56,7 @@ export default function SignUp() {
           router.push("/signin")
         }, 2000)
       }
-    } catch (error) {
+    } catch {
       setError("An error occurred. Please try again.")
     } finally {
       setIsLoading(false)
