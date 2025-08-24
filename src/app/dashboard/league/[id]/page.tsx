@@ -431,9 +431,7 @@ export default function LeaguePage() {
 
           {activeTab === 'myteam' && (
             <div className="space-y-4 sm:space-y-6">
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{myTeam?.metadata?.team_name || myTeamOwner?.display_name || myTeamOwner?.username || 'Unknown Team'}</h2>
-               
-                                             {/* Team Overview Card */}
+              {/* Team Overview Card */}
                 <div className="bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-lg shadow-sm p-2 sm:p-3 text-gray-800 dark:text-gray-200">
                   <div className="flex items-center gap-2">
                     {myTeamOwner?.avatar && (
