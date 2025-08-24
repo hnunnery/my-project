@@ -92,9 +92,8 @@ export default function LeaguePage() {
   const [leagueData, setLeagueData] = useState<LeagueData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
-  const [activeTab, setActiveTab] = useState<'myteam' | 'rosters' | 'analysis'>('myteam')
+  const [activeTab, setActiveTab] = useState<'team' | 'rosters' | 'calculators' | 'chat'>('team')
   const [searchTerm, setSearchTerm] = useState('')
-  const [positionFilter, setPositionFilter] = useState<string>('all')
   
   // Player analysis state
   const [startSitPlayer1, setStartSitPlayer1] = useState('')
@@ -174,10 +173,7 @@ export default function LeaguePage() {
     return player ? player.team : 'N/A'
   }
 
-  const getPlayerInjuryStatus = (playerId: string) => {
-    const player = leagueData?.players[playerId]
-    return player?.injury_status || null
-  }
+
 
   const getPlayerByeWeek = (playerId: string) => {
     const player = leagueData?.players[playerId]
@@ -211,57 +207,9 @@ export default function LeaguePage() {
     setSearchResults(results)
   }
 
-  const filteredRosters = leagueData?.rosters.filter(roster => {
-    if (!searchTerm && positionFilter === 'all') return true
-    
-    const owner = getUserByOwnerId(roster.owner_id)
-    const teamName = roster.metadata?.team_name || owner?.display_name || owner?.username || 'Unknown Team'
-    
-    if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase()
-      const teamNameLower = teamName.toLowerCase()
-      const ownerUsernameLower = owner?.username?.toLowerCase() || ''
-      
-      if (!teamNameLower.includes(searchLower) && !ownerUsernameLower.includes(searchLower)) {
-        return false
-      }
-    }
-    
-    if (positionFilter !== 'all') {
-      const starters = Array.isArray(roster.starters) ? roster.starters : []
-      const reserve = Array.isArray(roster.reserve) ? roster.reserve : []
-      
-      const hasPositionPlayer = [...starters, ...reserve].some(playerId => {
-        const player = leagueData?.players[playerId]
-        return player?.position === positionFilter
-      })
-      return hasPositionPlayer
-    }
-    
-    return true
-  }) || []
 
-  const getPositionCounts = () => {
-    if (!leagueData) return {}
-    
-    const counts: Record<string, number> = {}
-    leagueData.rosters.forEach(roster => {
-      const starters = Array.isArray(roster.starters) ? roster.starters : []
-      const reserve = Array.isArray(roster.reserve) ? roster.reserve : []
-      
-      const allPlayers = [...starters, ...reserve]
-      allPlayers.forEach(playerId => {
-        const player = leagueData.players[playerId]
-        if (player?.position) {
-          counts[player.position] = (counts[player.position] || 0) + 1
-        }
-      })
-    })
-    return counts
-  }
 
-  const positionCounts = getPositionCounts()
-  const availablePositions = Object.keys(positionCounts).sort()
+
 
   // Player Search Input Component
   const PlayerSearchInput = ({ 
@@ -300,10 +248,10 @@ export default function LeaguePage() {
                 // Add touch feedback for mobile
               }}
             >
-              <div className="font-medium text-gray-900 dark:text-white text-sm">{player.name}</div>
-              <div className="text-xs text-gray-500 dark:text-gray-400">
-                {player.position} • {player.team}
-              </div>
+                             <div className="font-medium text-gray-900 dark:text-white text-base">{player.name}</div>
+               <div className="text-sm text-gray-500 dark:text-gray-400">
+                 {player.position} • {player.team}
+               </div>
             </div>
           ))}
         </div>
@@ -359,6 +307,30 @@ export default function LeaguePage() {
 
   const myTeam = getMyTeam()
   const myTeamOwner = myTeam ? getUserByOwnerId(myTeam.owner_id) : null
+
+  const filteredRosters = leagueData?.rosters.filter(roster => {
+    if (!searchTerm) return true
+    
+    const owner = getUserByOwnerId(roster.owner_id)
+    const teamName = roster.metadata?.team_name || owner?.display_name || owner?.username || 'Unknown Team'
+    
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase()
+      const teamNameLower = teamName.toLowerCase()
+      const ownerUsernameLower = owner?.username?.toLowerCase() || ''
+      
+      if (!teamNameLower.includes(searchLower) && !ownerUsernameLower.includes(searchLower)) {
+        return false
+      }
+    }
+    
+    return true
+  }).sort((a, b) => {
+    // Put user's own team first
+    if (a.owner_id === myTeam?.owner_id) return -1
+    if (b.owner_id === myTeam?.owner_id) return 1
+    return 0
+  }) || []
 
   if (isLoading) {
     return (
@@ -434,13 +406,14 @@ export default function LeaguePage() {
           <div className="border-b border-gray-200 dark:border-gray-700 mb-6 sm:mb-8">
             <nav className="-mb-px flex flex-wrap gap-2 sm:gap-8">
               {[
-                { id: 'myteam', label: 'My Team', icon: '🏆' },
-                { id: 'rosters', label: 'Team Rosters', icon: '👥' },
-                { id: 'analysis', label: 'Player Analysis', icon: '📊' }
+                { id: 'team', label: 'Team', icon: '🏆' },
+                { id: 'rosters', label: 'Rosters', icon: '📋' },
+                { id: 'calculators', label: 'Calculators', icon: '📊' },
+                { id: 'chat', label: 'Chat', icon: '🤖' }
               ].map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id as 'myteam' | 'rosters' | 'analysis')}
+                  onClick={() => setActiveTab(tab.id as 'team' | 'rosters' | 'calculators' | 'chat')}
                   className={`py-2 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
                     activeTab === tab.id
                       ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
@@ -453,67 +426,34 @@ export default function LeaguePage() {
             </nav>
           </div>
 
-          {activeTab === 'myteam' && (
+          {activeTab === 'team' && (
             <div className="space-y-4 sm:space-y-6">
               <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{myTeam?.metadata?.team_name || myTeamOwner?.display_name || myTeamOwner?.username || 'Unknown Team'}</h2>
                
-                              {/* Team Overview Card */}
-               <div className="bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-lg shadow-sm p-2 sm:p-3 text-gray-800 dark:text-gray-200">
-                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
-                   <div className="flex items-center gap-2">
-                     {myTeamOwner?.avatar && (
-                       <Image 
-                         src={`https://sleepercdn.com/avatars/thumbs/${myTeamOwner.avatar}`}
-                         alt="Avatar" 
-                         className="w-6 h-6 sm:w-8 sm:h-8 rounded-full border border-indigo-200 dark:border-indigo-700"
-                         width={32}
-                         height={32}
-                       />
-                     )}
-                     <div>
-                       <h3 className="text-sm sm:text-base font-semibold">
-                         {myTeam?.metadata?.team_name || myTeamOwner?.display_name || myTeamOwner?.username || 'Unknown Team'}
-                       </h3>
-                     </div>
-                   </div>
-                   <div className="text-center sm:text-right">
-                     <div className="text-base sm:text-lg font-bold text-indigo-600 dark:text-indigo-400">
-                       {(Array.isArray(myTeam?.starters) ? myTeam.starters.length : 0) + (Array.isArray(myTeam?.reserve) ? myTeam.reserve.length : 0)}
-                     </div>
-                     <div className="text-indigo-600 dark:text-indigo-400 text-xs">Total Players</div>
-                   </div>
-                 </div>
-                 
-                 {/* Quick Stats */}
-                 <div className="grid grid-cols-4 gap-1 sm:gap-2 mt-2">
-                   <div className="text-center">
-                     <div className="text-sm sm:text-base font-bold text-indigo-600 dark:text-indigo-400">{Array.isArray(myTeam?.starters) ? myTeam.starters.length : 0}</div>
-                     <div className="text-indigo-600 dark:text-indigo-400 text-xs">Starters</div>
-                   </div>
-                   <div className="text-center">
-                     <div className="text-sm sm:text-base font-bold text-indigo-600 dark:text-indigo-400">{Array.isArray(myTeam?.reserve) ? myTeam.reserve.length : 0}</div>
-                     <div className="text-indigo-600 dark:text-indigo-400 text-xs">Bench</div>
-                   </div>
-                   <div className="text-center">
-                     <div className="text-sm sm:text-base font-bold text-indigo-600 dark:text-indigo-400">{Array.isArray(myTeam?.taxi) ? myTeam.taxi.length : 0}</div>
-                     <div className="text-indigo-600 dark:text-indigo-400 text-xs">Taxi</div>
-                   </div>
-                   <div className="text-center">
-                     <div className="text-sm sm:text-base font-bold text-indigo-600 dark:text-indigo-400">
-                       {(Array.isArray(myTeam?.starters) ? myTeam.starters.length : 0) + 
-                        (Array.isArray(myTeam?.reserve) ? myTeam.reserve.length : 0) + 
-                        (Array.isArray(myTeam?.taxi) ? myTeam.taxi.length : 0)}
-                     </div>
-                     <div className="text-indigo-600 dark:text-indigo-400 text-xs">Total</div>
-                   </div>
-                 </div>
-               </div>
+                                             {/* Team Overview Card */}
+                <div className="bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-lg shadow-sm p-2 sm:p-3 text-gray-800 dark:text-gray-200">
+                  <div className="flex items-center gap-2">
+                    {myTeamOwner?.avatar && (
+                      <Image 
+                        src={`https://sleepercdn.com/avatars/thumbs/${myTeamOwner.avatar}`}
+                        alt="Avatar" 
+                        className="w-6 h-6 sm:w-8 sm:h-8 rounded-full border border-indigo-200 dark:border-indigo-700"
+                        width={32}
+                        height={32}
+                      />
+                    )}
+                    <div>
+                      <h3 className="text-sm sm:text-base font-semibold">
+                        {myTeam?.metadata?.team_name || myTeamOwner?.display_name || myTeamOwner?.username || 'Unknown Team'}
+                      </h3>
+                    </div>
+                  </div>
+                </div>
 
 
 
-                {/* Detailed Roster */}
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 sm:p-6">
-                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-4">Detailed Roster</h3>
+                                 {/* Detailed Roster */}
+                 <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 sm:p-6">
                   
                   <div className="space-y-4">
                     {/* Starters Section */}
@@ -553,12 +493,12 @@ export default function LeaguePage() {
                               </div>
                               <div className="flex-1 truncate">
                                 <div className="flex items-center space-x-3">
-                                  <h3 className="truncate text-sm font-medium text-gray-900 dark:text-white">{getPlayerName(playerId)}</h3>
-                                  <span className="inline-flex shrink-0 items-center rounded-full bg-blue-50 px-1.5 py-0.5 text-xs font-medium text-blue-700 inset-ring inset-ring-blue-600/20 dark:bg-blue-500/10 dark:text-blue-400 dark:inset-ring-blue-500/10">
-                                    {getPlayerPosition(playerId)}
-                                  </span>
-                                  <span className="inline-flex shrink-0 items-center rounded-full bg-gray-50 px-1.5 py-0.5 text-xs font-medium text-gray-700 inset-ring inset-ring-gray-600/20 dark:bg-gray-500/10 dark:text-gray-400 dark:inset-ring-gray-500/10">
-                                    {getPlayerTeam(playerId)}
+                                                                     <h3 className="truncate text-base font-medium text-gray-900 dark:text-white">{getPlayerName(playerId)}</h3>
+                                   <span className="inline-flex shrink-0 items-center rounded-full bg-blue-50 px-2 py-1 text-sm font-medium text-blue-700 inset-ring inset-ring-blue-600/20 dark:bg-blue-500/10 dark:text-blue-400 dark:inset-ring-blue-500/10">
+                                     {getPlayerPosition(playerId)}
+                                   </span>
+                                   <span className="inline-flex shrink-0 items-center rounded-full bg-gray-50 px-2 py-1 text-sm font-medium text-gray-700 inset-ring inset-ring-gray-600/20 dark:bg-gray-500/10 dark:text-gray-400 dark:inset-ring-gray-500/10">
+                                     {getPlayerTeam(playerId)}
                                   </span>
                                   {(() => {
                                     const byeWeek = getPlayerByeWeek(playerId)
@@ -648,12 +588,12 @@ export default function LeaguePage() {
                               </div>
                               <div className="flex-1 truncate">
                                 <div className="flex items-center space-x-3">
-                                  <h3 className="truncate text-sm font-medium text-gray-900 dark:text-white">{getPlayerName(playerId)}</h3>
-                                  <span className="inline-flex shrink-0 items-center rounded-full bg-gray-50 px-1.5 py-0.5 text-xs font-medium text-gray-700 inset-ring inset-ring-gray-600/20 dark:bg-gray-500/10 dark:text-gray-400 dark:inset-ring-gray-500/10">
-                                    {getPlayerPosition(playerId)}
-                                  </span>
-                                  <span className="inline-flex shrink-0 items-center rounded-full bg-gray-50 px-1.5 py-0.5 text-xs font-medium text-gray-700 inset-ring inset-ring-gray-600/20 dark:bg-gray-500/10 dark:text-gray-400 dark:inset-ring-gray-500/10">
-                                    {getPlayerTeam(playerId)}
+                                                                     <h3 className="truncate text-base font-medium text-gray-900 dark:text-white">{getPlayerName(playerId)}</h3>
+                                   <span className="inline-flex shrink-0 items-center rounded-full bg-gray-50 px-2 py-1 text-sm font-medium text-gray-700 inset-ring inset-ring-gray-600/20 dark:bg-gray-500/10 dark:text-gray-400 dark:inset-ring-gray-500/10">
+                                     {getPlayerPosition(playerId)}
+                                   </span>
+                                   <span className="inline-flex shrink-0 items-center rounded-full bg-gray-50 px-2 py-1 text-sm font-medium text-gray-700 inset-ring inset-ring-gray-600/20 dark:bg-gray-500/10 dark:text-gray-400 dark:inset-ring-gray-500/10">
+                                     {getPlayerTeam(playerId)}
                                   </span>
                                   {(() => {
                                     const byeWeek = getPlayerByeWeek(playerId)
@@ -744,12 +684,12 @@ export default function LeaguePage() {
                                 </div>
                                 <div className="flex-1 truncate">
                                   <div className="flex items-center space-x-3">
-                                    <h3 className="truncate text-sm font-medium text-gray-900 dark:text-white">{getPlayerName(playerId)}</h3>
-                                    <span className="inline-flex shrink-0 items-center rounded-full bg-yellow-50 px-1.5 py-0.5 text-xs font-medium text-yellow-700 inset-ring inset-ring-yellow-600/20 dark:bg-yellow-500/10 dark:text-yellow-400 dark:inset-ring-yellow-500/10">
-                                      {getPlayerPosition(playerId)}
-                                    </span>
-                                    <span className="inline-flex shrink-0 items-center rounded-full bg-gray-50 px-1.5 py-0.5 text-xs font-medium text-gray-700 inset-ring inset-ring-gray-600/20 dark:bg-gray-500/10 dark:text-gray-400 dark:inset-ring-gray-500/10">
-                                      {getPlayerTeam(playerId)}
+                                                                       <h3 className="truncate text-base font-medium text-gray-900 dark:text-white">{getPlayerName(playerId)}</h3>
+                                   <span className="inline-flex shrink-0 items-center rounded-full bg-yellow-50 px-2 py-1 text-sm font-medium text-yellow-700 inset-ring inset-ring-yellow-600/20 dark:bg-yellow-500/10 dark:text-yellow-400 dark:inset-ring-yellow-500/10">
+                                     {getPlayerPosition(playerId)}
+                                   </span>
+                                   <span className="inline-flex shrink-0 items-center rounded-full bg-gray-50 px-2 py-1 text-sm font-medium text-gray-700 inset-ring inset-ring-gray-600/20 dark:bg-gray-500/10 dark:text-gray-400 dark:inset-ring-gray-500/10">
+                                     {getPlayerTeam(playerId)}
                                     </span>
                                     {(() => {
                                       const byeWeek = getPlayerByeWeek(playerId)
@@ -852,46 +792,60 @@ export default function LeaguePage() {
             <div className="space-y-4 sm:space-y-6">
               <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Team Rosters</h2>
                
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-3 sm:p-4 shadow-sm">
-                <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
-                  <div className="flex-1">
-                    <label htmlFor="search" className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Search Teams
-                    </label>
-                    <input
-                      type="text"
-                      id="search"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      placeholder="Search by team name or owner..."
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white text-sm"
-                    />
-                  </div>
+                             <div className="bg-white dark:bg-gray-800 rounded-lg p-3 sm:p-4 shadow-sm">
+                 <div className="space-y-3">
+                   <div>
+                     <label htmlFor="team-select" className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                       Select Team
+                     </label>
+                     <select
+                       id="team-select"
+                       value={searchTerm}
+                       onChange={(e) => setSearchTerm(e.target.value)}
+                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white text-sm"
+                     >
+                       <option value="">All Teams</option>
+                       {leagueData.rosters.map((roster) => {
+                         const owner = getUserByOwnerId(roster.owner_id)
+                         const teamName = roster.metadata?.team_name || owner?.display_name || owner?.username || 'Unknown Team'
+                         return (
+                           <option key={roster.roster_id} value={teamName}>
+                             {teamName}
+                           </option>
+                         )
+                       })}
+                     </select>
+                   </div>
                    
-                  <div className="w-full sm:w-48">
-                    <label htmlFor="position-filter" className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Filter by Position
-                    </label>
-                    <select
-                      id="position-filter"
-                      value={positionFilter}
-                      onChange={(e) => setPositionFilter(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white text-sm"
-                    >
-                      <option value="all">All Positions</option>
-                      {availablePositions.map(position => (
-                        <option key={position} value={position}>
-                          {position} ({positionCounts[position]})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-                 
-                <div className="mt-3 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-                  Showing {filteredRosters.length} of {leagueData.rosters.length} teams
-                </div>
-              </div>
+                   <div>
+                     <label htmlFor="search" className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                       Search Teams
+                     </label>
+                     <input
+                       type="text"
+                       id="search"
+                       value={searchTerm}
+                       onChange={(e) => setSearchTerm(e.target.value)}
+                       placeholder="Search by team name or owner..."
+                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white text-sm"
+                     />
+                   </div>
+                 </div>
+                  
+                 <div className="mt-3 flex items-center justify-between text-xs sm:text-sm">
+                   <span className="text-gray-500 dark:text-gray-400">
+                     Showing {filteredRosters.length} of {leagueData.rosters.length} teams
+                   </span>
+                   {searchTerm && (
+                     <button
+                       onClick={() => setSearchTerm('')}
+                       className="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 px-2 py-1 rounded transition-colors duration-200"
+                     >
+                       Clear Filters
+                     </button>
+                   )}
+                 </div>
+               </div>
                
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                 {filteredRosters.map((roster) => {
@@ -928,127 +882,191 @@ export default function LeaguePage() {
                         </div>
                       </div>
 
-                      <div className="mb-4">
-                        <h4 className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
-                          <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                          Starters ({Array.isArray(roster.starters) ? roster.starters.length : 0})
-                        </h4>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                          {(Array.isArray(roster.starters) ? roster.starters : []).map((playerId) => (
-                            <div 
-                              key={playerId}
-                              className="group relative bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border border-blue-200 dark:border-blue-700 hover:from-blue-100 hover:to-indigo-100 dark:hover:from-blue-900/30 dark:hover:to-indigo-900/30 transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md overflow-hidden"
-                              title={`${getPlayerName(playerId)} - ${getPlayerPosition(playerId)} • ${getPlayerTeam(playerId)}`}
-                            >
-                              {/* Player Avatar/Position Icon */}
-                              <div className="absolute top-3 left-3">
-                                <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-800 flex items-center justify-center border-2 border-blue-200 dark:border-blue-600">
-                                  <span className="text-xs font-bold text-blue-700 dark:text-blue-300">
-                                    {getPlayerPosition(playerId)}
-                                  </span>
-                                </div>
-                              </div>
-                              
-                              {/* Injury Status Badge */}
-                              {getPlayerInjuryStatus(playerId) && (
-                                <div className="absolute top-3 right-3">
-                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
-                                    {getPlayerInjuryStatus(playerId)}
-                                  </span>
-                                </div>
-                              )}
-                              
-                              {/* Player Info */}
-                              <div className="pt-12 pb-3 px-3 text-center">
-                                <h4 className="font-semibold text-gray-900 dark:text-white text-sm mb-1 truncate">
-                                  {getPlayerName(playerId)}
-                                </h4>
-                                <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
-                                  {getPlayerTeam(playerId)}
-                                </p>
-                                
-                                {/* Player Stats Row */}
-                                <div className="flex items-center justify-center gap-2 text-xs">
-                                  <span className="px-2 py-1 bg-blue-100 dark:bg-blue-800/50 text-blue-700 dark:text-blue-300 rounded-full">
-                                    {getPlayerPosition(playerId)}
-                                  </span>
-                                  <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700/50 text-gray-600 dark:text-gray-400 rounded-full">
-                                    {(() => {
-                                      const player = leagueData?.players[playerId]
-                                      return player?.rank_position ? `#${player.rank_position}` : 'N/A'
-                                    })()}
-                                  </span>
-                                </div>
-                              </div>
-                              
-                              {/* Hover Effect Overlay */}
-                              <div className="absolute inset-0 bg-gradient-to-t from-blue-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
+                                             <div className="mb-4">
+                         <h4 className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                           <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                           Starters ({Array.isArray(roster.starters) ? roster.starters.length : 0})
+                         </h4>
+                         <ul role="list" className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 sm:gap-4">
+                           {(Array.isArray(roster.starters) ? roster.starters : []).map((playerId) => (
+                             <li
+                               key={playerId}
+                               className="col-span-1 divide-y divide-gray-200 rounded-lg bg-white shadow-sm dark:divide-white/10 dark:bg-gray-800/50 dark:shadow-none dark:outline dark:-outline-offset-1 dark:outline-white/10"
+                             >
+                               <div className="flex w-full items-center space-x-3 p-4">
+                                 <div className="size-10 shrink-0 rounded-full bg-white dark:bg-white flex items-center justify-center overflow-hidden">
+                                   {(() => {
+                                     const player = leagueData?.players[playerId]
+                                     if (player?.search_rank) {
+                                       return (
+                                         <Image
+                                           src={`https://sleepercdn.com/content/nfl/players/thumb/${playerId}.jpg`}
+                                           alt={getPlayerName(playerId)}
+                                           className="w-full h-full object-cover"
+                                           width={40}
+                                           height={40}
+                                         />
+                                       )
+                                     }
+                                     return null
+                                   })()}
+                                   <span className="fallback-text text-sm font-bold text-blue-700 dark:text-blue-300 hidden">
+                                     {getPlayerPosition(playerId)}
+                                   </span>
+                                 </div>
+                                 <div className="flex-1 truncate">
+                                   <div className="flex items-center space-x-3">
+                                     <h3 className="truncate text-base font-medium text-gray-900 dark:text-white">{getPlayerName(playerId)}</h3>
+                                     <span className="inline-flex shrink-0 items-center rounded-full bg-blue-50 px-2 py-1 text-sm font-medium text-blue-700 inset-ring inset-ring-blue-600/20 dark:bg-blue-500/10 dark:text-blue-400 dark:inset-ring-blue-500/10">
+                                       {getPlayerPosition(playerId)}
+                                     </span>
+                                     <span className="inline-flex shrink-0 items-center rounded-full bg-gray-50 px-2 py-1 text-sm font-medium text-gray-700 inset-ring inset-ring-gray-600/20 dark:bg-gray-500/10 dark:text-gray-400 dark:inset-ring-gray-500/10">
+                                       {getPlayerTeam(playerId)}
+                                     </span>
+                                     {(() => {
+                                       const byeWeek = getPlayerByeWeek(playerId)
+                                       if (byeWeek !== null) {
+                                         return (
+                                           <span className="inline-flex shrink-0 items-center rounded-full bg-orange-50 px-1.5 py-0.5 text-xs font-medium text-orange-700 inset-ring inset-ring-orange-600/20 dark:bg-orange-500/10 dark:text-orange-400 dark:inset-ring-orange-500/10">
+                                             BYE: {byeWeek}
+                                           </span>
+                                         )
+                                       }
+                                       return null
+                                     })()}
+                                   </div>
+                                 </div>
+                               </div>
+                               <div>
+                                 {/* Row 1: Value, Age */}
+                                 <div className="-mt-px flex divide-x divide-gray-200 dark:divide-white/10">
+                                   <div className="flex w-0 flex-1">
+                                     <div className="relative -mr-px inline-flex w-0 flex-1 items-center justify-center gap-x-2 rounded-bl-lg border border-transparent py-2 text-xs font-medium text-gray-900 dark:text-white">
+                                       <span className="text-xs text-gray-500 dark:text-gray-400">Value</span>
+                                       <span className="text-xs font-medium text-gray-900 dark:text-white">
+                                         {(() => {
+                                           const player = leagueData?.players[playerId]
+                                           // Calculate a simple value score based on available data
+                                           if (player?.fantasy_points_ppr && player?.rank_position) {
+                                             const value = Math.max(0, Math.round((player.fantasy_points_ppr / player.rank_position) * 100))
+                                             return value.toString()
+                                           }
+                                           return 'N/A'
+                                         })()}
+                                       </span>
+                                     </div>
+                                   </div>
+                                   <div className="-ml-px flex w-0 flex-1">
+                                     <div className="relative inline-flex w-0 flex-1 items-center justify-center gap-x-2 rounded-br-lg border border-transparent py-2 text-xs font-medium text-gray-900 dark:text-white">
+                                       <span className="text-xs text-gray-500 dark:text-gray-400">Age</span>
+                                       <span className="text-xs font-medium text-gray-900 dark:text-white">
+                                         {(() => {
+                                           const player = leagueData?.players[playerId]
+                                           return player?.age || 'N/A'
+                                         })()}
+                                       </span>
+                                     </div>
+                                   </div>
+                                 </div>
+                               </div>
+                             </li>
+                           ))}
+                         </ul>
+                       </div>
 
-                      {Array.isArray(roster.reserve) && roster.reserve.length > 0 && (
-                        <div>
-                          <h4 className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
-                            <span className="w-2 h-2 bg-gray-500 rounded-full"></span>
-                            Bench ({roster.reserve.length})
-                          </h4>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                            {roster.reserve.map((playerId) => (
-                              <div 
-                                key={playerId}
-                                className="group relative bg-gradient-to-br from-gray-50 to-slate-50 dark:from-gray-700 dark:to-slate-700 rounded-xl border border-gray-200 dark:border-gray-600 hover:from-gray-100 hover:to-slate-100 dark:hover:from-gray-600 dark:hover:to-slate-600 transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md overflow-hidden"
-                                title={`${getPlayerName(playerId)} - ${getPlayerPosition(playerId)} • ${getPlayerTeam(playerId)}`}
-                              >
-                                {/* Player Avatar/Position Icon */}
-                                <div className="absolute top-3 left-3">
-                                  <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center border-2 border-gray-200 dark:border-gray-600">
-                                    <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
-                                      {getPlayerPosition(playerId)}
-                                    </span>
-                                  </div>
-                                </div>
-                                
-                                {/* Injury Status Badge */}
-                                {getPlayerInjuryStatus(playerId) && (
-                                  <div className="absolute top-3 right-3">
-                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
-                                      {getPlayerInjuryStatus(playerId)}
-                                    </span>
-                                  </div>
-                                )}
-                                
-                                {/* Player Info */}
-                                <div className="pt-12 pb-3 px-3 text-center">
-                                  <h4 className="font-semibold text-gray-900 dark:text-white text-sm mb-1 truncate">
-                                    {getPlayerName(playerId)}
-                                  </h4>
-                                  <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
-                                    {getPlayerTeam(playerId)}
-                                  </p>
-                                  
-                                  {/* Player Stats Row */}
-                                  <div className="flex items-center justify-center gap-2 text-xs">
-                                    <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700/50 text-gray-600 dark:text-gray-400 rounded-full">
-                                      {getPlayerPosition(playerId)}
-                                    </span>
-                                    <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700/50 text-gray-600 dark:text-gray-400 rounded-full">
-                                      {(() => {
-                                        const player = leagueData?.players[playerId]
-                                        return player?.rank_position ? `#${player.rank_position}` : 'N/A'
-                                      })()}
-                                    </span>
-                                  </div>
-                                </div>
-                                
-                                {/* Hover Effect Overlay */}
-                                <div className="absolute inset-0 bg-gradient-to-t from-gray-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+                                             {Array.isArray(roster.reserve) && roster.reserve.length > 0 && (
+                         <div>
+                           <h4 className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                             <span className="w-2 h-2 bg-gray-500 rounded-full"></span>
+                             Bench ({roster.reserve.length})
+                           </h4>
+                           <ul role="list" className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 sm:gap-4">
+                             {roster.reserve.map((playerId) => (
+                               <li
+                                 key={playerId}
+                                 className="col-span-1 divide-y divide-gray-200 rounded-lg bg-white shadow-sm dark:divide-white/10 dark:bg-gray-800/50 dark:shadow-none dark:outline dark:-outline-offset-1 dark:outline-white/10"
+                               >
+                                 <div className="flex w-full items-center space-x-3 p-4">
+                                   <div className="size-10 shrink-0 rounded-full bg-white dark:bg-white flex items-center justify-center overflow-hidden">
+                                     {(() => {
+                                       const player = leagueData?.players[playerId]
+                                       if (player?.search_rank) {
+                                         return (
+                                           <Image
+                                             src={`https://sleepercdn.com/content/nfl/players/thumb/${playerId}.jpg`}
+                                             alt={getPlayerName(playerId)}
+                                             className="w-full h-full object-cover"
+                                             width={40}
+                                             height={40}
+                                           />
+                                         )
+                                       }
+                                       return null
+                                     })()}
+                                     <span className="fallback-text text-sm font-bold text-gray-700 dark:text-gray-300 hidden">
+                                       {getPlayerPosition(playerId)}
+                                     </span>
+                                   </div>
+                                   <div className="flex-1 truncate">
+                                     <div className="flex items-center space-x-3">
+                                       <h3 className="truncate text-base font-medium text-gray-900 dark:text-white">{getPlayerName(playerId)}</h3>
+                                       <span className="inline-flex shrink-0 items-center rounded-full bg-gray-50 px-2 py-1 text-sm font-medium text-gray-700 inset-ring inset-ring-gray-600/20 dark:bg-gray-500/10 dark:text-gray-400 dark:inset-ring-gray-500/10">
+                                         {getPlayerPosition(playerId)}
+                                       </span>
+                                       <span className="inline-flex shrink-0 items-center rounded-full bg-gray-50 px-2 py-1 text-sm font-medium text-gray-700 inset-ring inset-ring-gray-600/20 dark:bg-gray-500/10 dark:text-gray-400 dark:inset-ring-gray-500/10">
+                                         {getPlayerTeam(playerId)}
+                                       </span>
+                                       {(() => {
+                                         const byeWeek = getPlayerByeWeek(playerId)
+                                         if (byeWeek !== null) {
+                                           return (
+                                             <span className="inline-flex shrink-0 items-center rounded-full bg-orange-50 px-1.5 py-0.5 text-xs font-medium text-orange-700 inset-ring inset-ring-orange-600/20 dark:bg-orange-500/10 dark:text-orange-400 dark:inset-ring-orange-500/10">
+                                               BYE: {byeWeek}
+                                             </span>
+                                           )
+                                         }
+                                         return null
+                                       })()}
+                                     </div>
+                                   </div>
+                                 </div>
+                                 <div>
+                                   {/* Row 1: Value, Age */}
+                                   <div className="-mt-px flex divide-x divide-gray-200 dark:divide-white/10">
+                                     <div className="flex w-0 flex-1">
+                                       <div className="relative -mr-px inline-flex w-0 flex-1 items-center justify-center gap-x-2 rounded-bl-lg border border-transparent py-2 text-xs font-medium text-gray-900 dark:text-white">
+                                         <span className="text-xs text-gray-500 dark:text-gray-400">Value</span>
+                                         <span className="text-xs font-medium text-gray-900 dark:text-white">
+                                           {(() => {
+                                             const player = leagueData?.players[playerId]
+                                             // Calculate a simple value score based on available data
+                                             if (player?.fantasy_points_ppr && player?.rank_position) {
+                                               const value = Math.max(0, Math.round((player.fantasy_points_ppr / player.rank_position) * 100))
+                                               return value.toString()
+                                             }
+                                             return 'N/A'
+                                           })()}
+                                         </span>
+                                       </div>
+                                     </div>
+                                     <div className="-ml-px flex w-0 flex-1">
+                                       <div className="relative inline-flex w-0 flex-1 items-center justify-center gap-x-2 rounded-br-lg border border-transparent py-2 text-xs font-medium text-gray-900 dark:text-white">
+                                         <span className="text-xs text-gray-500 dark:text-gray-400">Age</span>
+                                         <span className="text-xs font-medium text-gray-900 dark:text-white">
+                                           {(() => {
+                                             const player = leagueData?.players[playerId]
+                                             return player?.age || 'N/A'
+                                           })()}
+                                         </span>
+                                       </div>
+                                     </div>
+                                   </div>
+                                 </div>
+                               </li>
+                             ))}
+                           </ul>
+                         </div>
+                       )}
                        
                        {(Array.isArray(roster.starters) ? roster.starters.length : 0) === 0 && (Array.isArray(roster.reserve) ? roster.reserve.length : 0) === 0 && (
                          <div className="text-center py-4 text-gray-500 dark:text-gray-400">
@@ -1064,7 +1082,7 @@ export default function LeaguePage() {
 
 
 
-          {activeTab === 'analysis' && (
+          {activeTab === 'calculators' && (
             <div className="space-y-4 sm:space-y-6">
               <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Player Analysis & Decision Making</h2>
               
@@ -1147,11 +1165,27 @@ export default function LeaguePage() {
                     </div>
                   ))}
                 </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </AuthGuard>
-  )
-}
+                             </div>
+             </div>
+           )}
+
+           {activeTab === 'chat' && (
+             <div className="space-y-4 sm:space-y-6">
+               <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">AI Fantasy Assistant</h2>
+               
+               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+                 <div className="text-center py-12">
+                   <div className="text-gray-400 dark:text-gray-500 text-4xl mb-4">🤖</div>
+                   <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">AI Chatbot Coming Soon</h3>
+                   <p className="text-gray-500 dark:text-gray-400">
+                     Get instant fantasy football advice, trade analysis, and roster optimization tips from our AI assistant.
+                   </p>
+                 </div>
+               </div>
+             </div>
+           )}
+         </div>
+       </div>
+     </AuthGuard>
+   )
+ }

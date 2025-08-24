@@ -95,6 +95,21 @@ export default function Dashboard() {
     }
   }, [sleeperUsername, storedLeagues])
 
+  // Auto-fetch data for default account if no data exists
+  useEffect(() => {
+    if (sleeperUsername && !sleeperData && !isLoadingSleeper) {
+      // Check if we have stored data that's fresh
+      const storedData = storedLeagues[sleeperUsername]
+      const isDataFresh = storedData && (Date.now() - storedData.lastUpdated) < 24 * 60 * 60 * 1000 // 24 hours
+      
+      if (!storedData || !isDataFresh) {
+        // Auto-fetch if no data or data is stale
+        console.log('Auto-fetching data for default account:', sleeperUsername)
+        fetchSleeperData(false)
+      }
+    }
+  }, [sleeperUsername, sleeperData, isLoadingSleeper, storedLeagues])
+
   // Save accounts to localStorage whenever they change
   useEffect(() => {
     if (savedAccounts.length > 0) {
@@ -264,10 +279,6 @@ export default function Dashboard() {
           {/* Saved Accounts */}
           {savedAccounts.length > 0 && (
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-                💾 Saved Sleeper Accounts
-              </h2>
-              
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {savedAccounts.map((account) => (
                   <div key={account.id} className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border-2 border-transparent hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
@@ -315,7 +326,7 @@ export default function Dashboard() {
                       
                       <button
                         onClick={() => removeAccount(account.id)}
-                        className="px-3 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                        className="px-3 py-1 text-xs bg-red-50 text-red-800 dark:bg-red-900/20 dark:text-red-200 rounded hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
                       >
                         Remove
                       </button>
@@ -353,8 +364,6 @@ export default function Dashboard() {
             </div>
           )}
 
-
-
           {/* Sleeper Integration */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-8">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
@@ -366,14 +375,31 @@ export default function Dashboard() {
                 <label htmlFor="sleeper-username" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Sleeper Username
                 </label>
-                <input
-                  type="text"
-                  id="sleeper-username"
-                  value={sleeperUsername}
-                  onChange={(e) => setSleeperUsername(e.target.value)}
-                  placeholder="Enter your Sleeper username..."
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white"
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    id="sleeper-username"
+                    value={sleeperUsername}
+                    onChange={(e) => setSleeperUsername(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && sleeperUsername.trim() && !isLoadingSleeper) {
+                        fetchSleeperData(false)
+                      }
+                    }}
+                    placeholder="Enter your Sleeper username..."
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white"
+                  />
+                  {sleeperUsername && !sleeperData && isLoadingSleeper && (
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600"></div>
+                    </div>
+                  )}
+                </div>
+                {sleeperUsername && !sleeperData && !isLoadingSleeper && (
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Press Enter or click "Fetch Leagues" to load your data
+                  </p>
+                )}
               </div>
               
               <div className="flex items-end gap-2">
@@ -388,10 +414,30 @@ export default function Dashboard() {
                   <button
                     onClick={() => fetchSleeperData(true)}
                     disabled={isLoadingSleeper}
-                    className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className={`px-4 py-2 rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${
+                      (() => {
+                        const storedData = storedLeagues[sleeperUsername]
+                        if (storedData) {
+                          const age = Date.now() - storedData.lastUpdated
+                          const isStale = age > 24 * 60 * 60 * 1000 // 24 hours
+                          return isStale 
+                            ? 'bg-yellow-600 text-white hover:bg-yellow-700' 
+                            : 'bg-gray-600 text-white hover:bg-gray-700'
+                        }
+                        return 'bg-gray-600 text-white hover:bg-gray-700'
+                      })()
+                    }`}
                     title="Force refresh data from API"
                   >
-                    🔄 Refresh
+                    🔄 {(() => {
+                      const storedData = storedLeagues[sleeperUsername]
+                      if (storedData) {
+                        const age = Date.now() - storedData.lastUpdated
+                        const isStale = age > 24 * 60 * 60 * 1000 // 24 hours
+                        return isStale ? 'Refresh (Stale)' : 'Refresh'
+                      }
+                      return 'Refresh'
+                    })()}
                   </button>
                 )}
               </div>
@@ -411,9 +457,10 @@ export default function Dashboard() {
                   const storedData = storedLeagues[sleeperUsername]
                   if (storedData) {
                     const age = Date.now() - storedData.lastUpdated
-                    const isStale = age > 60 * 60 * 1000 // 1 hour
+                    const isStale = age > 24 * 60 * 60 * 1000 // 24 hours
                     const ageMinutes = Math.floor(age / (60 * 1000))
                     const ageHours = Math.floor(age / (60 * 60 * 1000))
+                    const ageDays = Math.floor(age / (24 * 60 * 60 * 1000))
                     
                     return (
                       <div className={`p-3 rounded-lg text-sm ${
@@ -421,18 +468,29 @@ export default function Dashboard() {
                           ? 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200' 
                           : 'bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-200'
                       }`}>
-                        <div className="flex items-center gap-2">
-                          <span>{isStale ? '⚠️' : '✅'}</span>
-                          <span>
-                            {isStale 
-                              ? `Data is ${ageHours > 0 ? `${ageHours}h ${ageMinutes % 60}m` : `${ageMinutes}m`} old` 
-                              : `Data is fresh (${ageMinutes}m old)`
-                            }
-                          </span>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span>{isStale ? '⚠️' : '✅'}</span>
+                            <span>
+                              {isStale 
+                                ? `Data is ${ageDays > 0 ? `${ageDays}d ${ageHours % 24}h` : `${ageHours}h ${ageMinutes % 60}m`} old` 
+                                : `Data is fresh (${ageHours > 0 ? `${ageHours}h ${ageMinutes % 60}m` : `${ageMinutes}m`} old)`
+                              }
+                            </span>
+                          </div>
+                          {isStale && (
+                            <button
+                              onClick={() => fetchSleeperData(true)}
+                              disabled={isLoadingSleeper}
+                              className="px-3 py-1 text-xs bg-yellow-600 text-white rounded-md hover:bg-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            >
+                              {isLoadingSleeper ? 'Refreshing...' : 'Refresh Now'}
+                            </button>
+                          )}
                         </div>
                         {isStale && (
-                          <p className="mt-1 text-xs opacity-75">
-                            Click &quot;Refresh&quot; to get the latest data
+                          <p className="mt-2 text-xs opacity-75">
+                            Data is over 24 hours old. Click &quot;Refresh Now&quot; to get the latest information.
                           </p>
                         )}
                       </div>
