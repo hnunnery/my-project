@@ -412,7 +412,7 @@ export default function LeaguePage() {
                  { id: 'myteam', label: 'Team', icon: '🏆' },
                  { id: 'rosters', label: 'Rosters', icon: '📋' },
                  { id: 'analysis', label: 'Calculators', icon: '🧮' },
-                 { id: 'chat', label: 'Chat', icon: '💬' }
+                 { id: 'chat', label: 'Chat', icon: '🤖' }
                ].map((tab) => (
                 <button
                   key={tab.id}
