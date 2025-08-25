@@ -523,9 +523,9 @@ export default function LeaguePage() {
                         </h4>
                       </div>
                       <ul role="list" className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 sm:gap-4">
-                        {(Array.isArray(myTeam?.starters) ? myTeam.starters : []).map((playerId) => (
+                        {(Array.isArray(myTeam?.starters) ? [...new Set(myTeam.starters)] : []).map((playerId, index) => (
                           <li
-                            key={playerId}
+                            key={`${playerId}-${index}`}
                             className="col-span-1 divide-y divide-gray-200 rounded-lg bg-white shadow-sm dark:divide-white/10 dark:bg-gray-800/50 dark:shadow-none dark:outline dark:-outline-offset-1 dark:outline-white/10"
                           >
                             <div className="flex w-full items-center space-x-3 p-4">
@@ -619,9 +619,9 @@ export default function LeaguePage() {
                         </h4>
                       </div>
                       <ul role="list" className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 sm:gap-4">
-                        {(Array.isArray(myTeam?.reserve) ? myTeam.reserve : []).map((playerId) => (
+                        {(Array.isArray(myTeam?.reserve) ? [...new Set(myTeam.reserve)] : []).map((playerId, index) => (
                           <li
-                            key={playerId}
+                            key={`${playerId}-${index}`}
                             className="col-span-1 divide-y divide-gray-200 rounded-lg bg-white shadow-sm dark:divide-white/10 dark:bg-gray-800/50 dark:shadow-none dark:outline dark:-outline-offset-1 dark:outline-white/10"
                           >
                             <div className="flex w-full items-center space-x-3 p-4">
@@ -949,18 +949,15 @@ export default function LeaguePage() {
                           <Image 
                             src={`https://sleepercdn.com/avatars/thumbs/${owner.avatar}`}
                             alt="Avatar" 
-                            className="w-8 h-8 sm:w-10 sm:h-10 rounded-full"
-                            width={40}
-                            height={40}
+                            className="w-10 h-10 sm:w-12 sm:h-12 rounded-full"
+                            width={48}
+                            height={48}
                           />
                         )}
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white truncate">
+                        <div className="flex-1 min-w-0 flex items-center">
+                          <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white truncate">
                             {teamName}
                           </h3>
-                          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">
-                            @{owner?.username}
-                          </p>
                         </div>
                         <div className="text-right text-xs sm:text-sm">
                           <div className="text-gray-500 dark:text-gray-400">
@@ -1070,8 +1067,6 @@ export default function LeaguePage() {
                            </h4>
                            <ul role="list" className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 sm:gap-4">
                              {roster.reserve.map((playerId) => {
-                               const player = leagueData?.players[playerId]
-                               
                                return (
                                  <li
                                    key={playerId}
@@ -1141,12 +1136,12 @@ export default function LeaguePage() {
                                        <div className="-ml-px flex w-0 flex-1">
                                          <div className="relative inline-flex w-0 flex-1 items-center justify-center gap-x-2 rounded-br-lg border border-transparent py-2 text-xs font-medium text-gray-900 dark:text-white">
                                            <span className="text-xs text-gray-500 dark:text-gray-400">Age</span>
-                                           <span className="text-xs font-medium text-gray-900 dark:text-white">
-                                             {(() => {
-                                               const player = leagueData?.players[playerId]
-                                               return player?.age || 'N/A'
-                                             })()}
-                                           </span>
+                                                                                        <span className="text-xs font-medium text-gray-900 dark:text-white">
+                                               {(() => {
+                                                 const playerData = leagueData?.players[playerId]
+                                                 return playerData?.age || 'N/A'
+                                               })()}
+                                             </span>
                                          </div>
                                        </div>
                                      </div>

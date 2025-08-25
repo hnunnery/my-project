@@ -128,6 +128,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **✅ Button Text Update**: Changed "Fetch Leagues" button to "Add Leagues" for better user understanding
 - **✅ Mobile-First Card Layout**: Moved trash icon next to username, removed duplicate @username, tightened spacing, and optimized for mobile screens
 - **✅ Streamlined User Display**: Removed duplicate username, increased text size to text-base, enlarged trash icon to 16x16px, and improved vertical alignment
+- **✅ Dashboard Layout Restructure**: Moved "Your Leagues" section under account cards, shows leagues for selected account, moved Sleeper integration to bottom, and added refresh icon next to leagues header
+- **✅ League Card Improvements**: Made cards transparent with subtle borders, removed status field, improved mobile-first styling with better typography and hover effects
+- **✅ League Card Layout**: Updated to single-row layout with league name on top and Season/Teams side-by-side below for better space utilization
+- **✅ Mobile-First Clickability**: Enhanced league cards with solid backgrounds, clear borders, and touch-friendly active states for better mobile interaction
+- **✅ Duplicate Key Bug Fix**: Resolved React duplicate key error in league roster display by deduplicating player IDs and using unique composite keys
+- **✅ Dashboard Cleanup**: Removed redundant refresh button from "Add Leagues" section, keeping only the refresh icon in "Your Leagues" for cleaner interface
+- **✅ Streamlined Account Addition**: Removed redundant "Leagues Found" display and user card, replaced with success message, and auto-clear input for adding multiple accounts
+- **✅ Roster Header Improvements**: Removed duplicate @username display, increased primary user field size, and improved avatar alignment for better mobile-first design
+- **✅ AI Chat Cleanup**: Removed placeholder text from chat input for cleaner, more minimal interface
 
 ## [0.1.0] - 2025-01-XX
 

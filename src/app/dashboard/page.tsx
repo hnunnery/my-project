@@ -237,6 +237,9 @@ export default function Dashboard() {
       setStoredLeagues(prev => ({ ...prev, [sleeperUsername]: newData }))
       
       setSleeperData({ user, leagues })
+      
+      // Clear the input to prepare for adding another account
+      setSleeperUsername('')
     } catch (error) {
       console.error('Error fetching Sleeper data:', error)
       setSleeperError(error instanceof Error ? error.message : 'Failed to fetch data')
@@ -328,10 +331,85 @@ export default function Dashboard() {
             </div>
           )}
 
-                     {/* Sleeper Integration */}
+           {/* Your Leagues Section */}
+           {savedAccounts.length > 0 && (
+             <div className="bg-transparent rounded-lg shadow-lg p-4 mb-4">
+               <div className="flex items-center justify-between mb-3">
+                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                   Your Leagues
+                 </h2>
+                 {(() => {
+                   const selectedAccount = savedAccounts.find(acc => acc.isDefault)
+                   if (!selectedAccount) return null
+                   
+                   const accountData = storedLeagues[selectedAccount.username]
+                   if (!accountData) return null
+                   
+                   return (
+                     <button
+                       onClick={() => fetchSleeperData(true)}
+                       disabled={isLoadingSleeper}
+                       className="p-2 text-gray-600 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors"
+                       title="Refresh leagues data"
+                     >
+                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                       </svg>
+                     </button>
+                   )
+                 })()}
+               </div>
+               
+               {(() => {
+                 const selectedAccount = savedAccounts.find(acc => acc.isDefault)
+                 if (!selectedAccount) return null
+                 
+                 const accountData = storedLeagues[selectedAccount.username]
+                 if (!accountData) {
+                   return (
+                     <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                       <p>No leagues found for {selectedAccount.displayName}</p>
+                       <p className="text-sm mt-1">Add leagues using the form below</p>
+                     </div>
+                   )
+                 }
+                 
+                 if (accountData.leagues.length === 0) {
+                   return (
+                     <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                       <p>No leagues found for {selectedAccount.displayName}</p>
+                       <p className="text-sm mt-1">Add leagues using the form below</p>
+                     </div>
+                   )
+                 }
+                 
+                 return (
+                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                     {accountData.leagues.map((league) => (
+                       <Link
+                         key={league.league_id}
+                         href={`/dashboard/league/${league.league_id}`}
+                         className="block p-4 bg-transparent border-2 border-gray-200 dark:border-gray-600 rounded-lg active:bg-gray-100 dark:active:bg-gray-700 active:scale-95 transition-transform duration-150 cursor-pointer"
+                       >
+                         <h4 className="font-semibold text-gray-900 dark:text-white text-base mb-3 truncate">
+                           {league.name}
+                         </h4>
+                         <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                           <span>Season: {league.season}</span>
+                           <span>Teams: {league.settings.num_teams}</span>
+                         </div>
+                       </Link>
+                     ))}
+                   </div>
+                 )
+               })()}
+             </div>
+           )}
+
+           {/* Sleeper Integration */}
            <div className="bg-transparent rounded-lg shadow-lg p-4 mb-4">
              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
-               Sleeper Integration
+               Add New Account
              </h2>
              
              <div className="flex flex-col sm:flex-row gap-3 mb-3">
@@ -374,36 +452,7 @@ export default function Dashboard() {
                  >
                    {isLoadingSleeper ? 'Loading...' : 'Add Leagues'}
                  </button>
-                {sleeperData && (
-                  <button
-                    onClick={() => fetchSleeperData(true)}
-                    disabled={isLoadingSleeper}
-                    className={`px-4 py-2 rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${
-                      (() => {
-                        const storedData = storedLeagues[sleeperUsername]
-                        if (storedData) {
-                          const age = Date.now() - storedData.lastUpdated
-                          const isStale = age > 24 * 60 * 60 * 1000 // 24 hours
-                          return isStale 
-                            ? 'bg-yellow-600 text-white hover:bg-yellow-700' 
-                            : 'bg-gray-600 text-white hover:bg-gray-700'
-                        }
-                        return 'bg-gray-600 text-white hover:bg-gray-700'
-                      })()
-                    }`}
-                    title="Force refresh data from API"
-                  >
-                    🔄 {(() => {
-                      const storedData = storedLeagues[sleeperUsername]
-                      if (storedData) {
-                        const age = Date.now() - storedData.lastUpdated
-                        const isStale = age > 24 * 60 * 60 * 1000 // 24 hours
-                        return isStale ? 'Refresh (Stale)' : 'Refresh'
-                      }
-                      return 'Refresh'
-                    })()}
-                  </button>
-                )}
+
               </div>
             </div>
 
@@ -413,107 +462,24 @@ export default function Dashboard() {
               </div>
             )}
 
-            {/* Display Sleeper Data */}
+            {/* Success Message */}
             {sleeperData && (
-              <div className="mt-6 space-y-4">
-                {/* Cache Status */}
-                {(() => {
-                  const storedData = storedLeagues[sleeperUsername]
-                  if (storedData) {
-                    const age = Date.now() - storedData.lastUpdated
-                    const isStale = age > 24 * 60 * 60 * 1000 // 24 hours
-                    const ageMinutes = Math.floor(age / (60 * 1000))
-                    const ageHours = Math.floor(age / (60 * 60 * 1000))
-                    const ageDays = Math.floor(age / (24 * 60 * 60 * 1000))
-                    
-                    return (
-                      <div className={`p-3 rounded-lg text-sm ${
-                        isStale 
-                          ? 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200' 
-                          : 'bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-200'
-                      }`}>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <span>{isStale ? '⚠️' : '✅'}</span>
-                            <span>
-                              {isStale 
-                                ? `Data is ${ageDays > 0 ? `${ageDays}d ${ageHours % 24}h` : `${ageHours}h ${ageMinutes % 60}m`} old` 
-                                : `Data is fresh (${ageHours > 0 ? `${ageHours}h ${ageMinutes % 60}m` : `${ageMinutes}m`} old)`
-                              }
-                            </span>
-                          </div>
-                          {isStale && (
-                            <button
-                              onClick={() => fetchSleeperData(true)}
-                              disabled={isLoadingSleeper}
-                              className="px-3 py-1 text-xs bg-yellow-600 text-white rounded-md hover:bg-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                            >
-                              {isLoadingSleeper ? 'Refreshing...' : 'Refresh Now'}
-                            </button>
-                          )}
-                        </div>
-                        {isStale && (
-                          <p className="mt-2 text-xs opacity-75">
-                            Data is over 24 hours old. Click &quot;Refresh Now&quot; to get the latest information.
-                          </p>
-                        )}
-                      </div>
-                    )
-                  }
-                  return null
-                })()}
-
-                {sleeperData.user && (
-                  <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                    {sleeperData.user.avatar && (
-                      <Image 
-                        src={`https://sleepercdn.com/avatars/thumbs/${sleeperData.user.avatar}`}
-                        alt="Avatar" 
-                        className="w-12 h-12 rounded-full"
-                        width={48}
-                        height={48}
-                      />
-                    )}
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                        {sleeperData.user.display_name || sleeperData.user.username}
-                      </h3>
-                      <p className="text-gray-600 dark:text-gray-400">
-                        @{sleeperData.user.username}
-                      </p>
-                    </div>
+              <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="flex-shrink-0">
+                    <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
                   </div>
-                )}
-
-                                 {sleeperData.leagues.length > 0 ? (
-                   <div>
-                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-                       Your Leagues ({sleeperData.leagues.length})
-                     </h3>
-                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                      {sleeperData.leagues.map((league) => (
-                        <Link
-                          key={league.league_id}
-                          href={`/dashboard/league/${league.league_id}`}
-                          className="block p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
-                        >
-                          <h4 className="font-medium text-gray-900 dark:text-white mb-2">
-                            {league.name}
-                          </h4>
-                          <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-                            <p>Season: {league.season}</p>
-                            <p>Teams: {league.settings.num_teams}</p>
-                            <p>Status: {league.status}</p>
-                          </div>
-                        </Link>
-                      ))}
-                    </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-green-800 dark:text-green-200">
+                      Account Added Successfully!
+                    </h3>
+                    <p className="text-sm text-green-700 dark:text-green-300">
+                      {sleeperData.user?.display_name || sleeperData.user?.username} has been added with {sleeperData.leagues.length} leagues.
+                    </p>
                   </div>
-                ) : (
-                  <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                    <p>No leagues found for this username</p>
-                  </div>
-                )}
+                </div>
               </div>
             )}
           </div>
