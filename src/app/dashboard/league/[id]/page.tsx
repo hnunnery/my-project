@@ -7,7 +7,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { fetchSleeperNews, SleeperNewsItem } from '@/lib/sleeper'
+
 
 interface SleeperUser {
   user_id: string
@@ -52,7 +52,7 @@ interface SleeperPlayer {
   fantasy_positions: string[]
   active: boolean
   injury_status?: string
-  news_updated?: number
+
   age?: number
   // Enhanced fields for fantasy decision making
   fantasy_points?: number
@@ -113,7 +113,7 @@ export default function LeaguePage() {
   const [draftPlayerX, setDraftPlayerX] = useState('')
   const [draftPlayerY, setDraftPlayerY] = useState('')
   const [searchResults, setSearchResults] = useState<SleeperPlayer[]>([])
-  const [playerNews, setPlayerNews] = useState<Record<string, SleeperNewsItem[]>>({})
+
 
   useEffect(() => {
     if (leagueId) {
@@ -367,24 +367,7 @@ export default function LeaguePage() {
   const myTeam = getMyTeam()
   const myTeamOwner = myTeam ? getUserByOwnerId(myTeam.owner_id) : null
 
-  useEffect(() => {
-    const loadNews = async () => {
-      if (!myTeam) return
-      const ids = Array.from(new Set([...(myTeam.starters || []), ...(myTeam.reserve || [])]))
-      if (ids.length === 0) return
-      try {
-        const items = await fetchSleeperNews(ids)
-        const grouped = items.reduce((acc, item) => {
-          ;(acc[item.player_id] ||= []).push(item)
-          return acc
-        }, {} as Record<string, SleeperNewsItem[]>)
-        setPlayerNews(grouped)
-      } catch (err) {
-        console.error('Error fetching player news:', err)
-      }
-    }
-    loadNews()
-  }, [myTeam])
+
 
   const filteredRosters = leagueData?.rosters.filter(roster => {
     if (!searchTerm) return true
@@ -528,24 +511,7 @@ export default function LeaguePage() {
                     </div>
                   </div>
 
-                {Object.keys(playerNews).length > 0 && (
-                  <div className="bg-yellow-50 dark:bg-yellow-900/30 border-l-4 border-yellow-400 p-3 rounded-md">
-                    <h4 className="text-sm font-semibold text-yellow-800 dark:text-yellow-200 mb-1">News Alerts</h4>
-                    <ul className="space-y-1 text-sm text-yellow-800 dark:text-yellow-200">
-                      {Object.entries(playerNews).map(([pid, items]) => {
-                        const latest = [...items].sort((a, b) => b.timestamp - a.timestamp)[0]
-                        return (
-                          <li key={pid}>
-                            <Link href={`/player/${pid}`} className="underline font-medium">
-                              {getPlayerName(pid)}
-                            </Link>
-                            : {latest.title}
-                          </li>
-                        )
-                      })}
-                    </ul>
-                  </div>
-                )}
+
 
                                    {/* Detailed Roster */}
                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 sm:p-6">

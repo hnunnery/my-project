@@ -137,6 +137,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **✅ Streamlined Account Addition**: Removed redundant "Leagues Found" display and user card, replaced with success message, and auto-clear input for adding multiple accounts
 - **✅ Roster Header Improvements**: Removed duplicate @username display, increased primary user field size, and improved avatar alignment for better mobile-first design
 - **✅ AI Chat Cleanup**: Removed placeholder text from chat input for cleaner, more minimal interface
+- **✅ News API Fix**: Resolved 404 error from non-existent Sleeper news endpoint, added graceful fallback for future news integration
+- **✅ News Functionality Removal**: Completely removed all player news functionality (API, UI components, state management) after confirming Sleeper news endpoint was a dead end
 
 ## [0.1.0] - 2025-01-XX
 
