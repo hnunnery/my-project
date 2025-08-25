@@ -40,6 +40,7 @@ interface SleeperRoster {
   }
   starters: string[]
   reserve: string[]
+  bench?: string[]
   league_id: string
 }
 
@@ -92,6 +93,18 @@ interface LeagueData {
   rosters: SleeperRoster[]
   players: Record<string, SleeperPlayer>
 }
+
+const POSITION_GROUPS = [
+  { label: 'QB', positions: ['QB'] },
+  { label: 'RB', positions: ['RB'] },
+  { label: 'WR', positions: ['WR'] },
+  { label: 'TE', positions: ['TE'] },
+  { label: 'DL/DE/DT', positions: ['DL', 'DE', 'DT'] },
+  { label: 'LB', positions: ['LB'] },
+  { label: 'DB/S/CB', positions: ['DB', 'S', 'CB'] },
+  { label: 'DEF', positions: ['DEF', 'DST'] },
+  { label: 'K', positions: ['K'] },
+]
 
 export default function LeaguePage() {
   const params = useParams()
@@ -154,19 +167,20 @@ export default function LeaguePage() {
       
             const players = playersData.players
 
-      // Process rosters to ensure bench players are properly calculated
+      // Process rosters to calculate bench players without losing IR data
       const processedRosters = rosters.map(roster => {
-        // Always calculate bench players from the actual players array
         if (roster.players && roster.starters) {
           const benchPlayers = roster.players.filter((playerId: string) =>
-            !roster.starters.includes(playerId)
+            !roster.starters.includes(playerId) &&
+            !(roster.taxi || []).includes(playerId) &&
+            !(roster.reserve || []).includes(playerId)
           )
           return {
             ...roster,
-            reserve: benchPlayers
+            bench: benchPlayers,
           }
         }
-        return roster
+        return { ...roster, bench: [] as string[] }
       })
 
       setLeagueData({ league, users, rosters: processedRosters, players })
@@ -249,6 +263,38 @@ export default function LeaguePage() {
     return null
   }
 
+  const getAllRosterPlayerIds = (roster: SleeperRoster) => {
+    const all = new Set<string>([
+      ...(roster.players || []),
+      ...(roster.starters || []),
+      ...(roster.bench || []),
+      ...(roster.taxi || []),
+      ...(roster.reserve || []),
+    ])
+    return Array.from(all)
+  }
+
+  const groupPlayersByPosition = (playerIds: string[]) => {
+    const groups = POSITION_GROUPS.map(g => ({ ...g, players: [] as string[] }))
+    const otherGroup = { label: 'Other', positions: [] as string[], players: [] as string[] }
+
+    playerIds.forEach(id => {
+      const pos = getPlayerPosition(id)
+      const group = groups.find(g => g.positions.includes(pos))
+      if (group) group.players.push(id)
+      else otherGroup.players.push(id)
+    })
+
+    const allGroups = [...groups, otherGroup]
+    allGroups.forEach(g => {
+      g.players.sort((a, b) =>
+        (dynastyValues[b]?.dynastyValue ?? 0) - (dynastyValues[a]?.dynastyValue ?? 0)
+      )
+    })
+
+    return allGroups.filter(g => g.players.length > 0)
+  }
+
   const searchPlayers = (query: string) => {
     if (!leagueData?.players || !query.trim()) {
       setSearchResults([])
@@ -272,12 +318,12 @@ export default function LeaguePage() {
 
 
   // Player Search Input Component
-  const PlayerSearchInput = ({ 
-    value, 
-    onChange, 
-    placeholder, 
-    onSearch 
-  }: { 
+  const PlayerSearchInput = ({
+    value,
+    onChange,
+    placeholder,
+    onSearch
+  }: {
     value: string
     onChange: (value: string) => void
     placeholder: string
@@ -317,6 +363,91 @@ export default function LeaguePage() {
         </div>
       )}
     </div>
+  )
+
+  const PlayerCard = ({ playerId }: { playerId: string }) => (
+    <li
+      className="col-span-1 divide-y divide-gray-200 rounded-lg bg-white shadow-sm dark:divide-white/10 dark:bg-gray-800/50 dark:shadow-none dark:outline dark:-outline-offset-1 dark:outline-white/10"
+    >
+      <div className="flex w-full items-center space-x-3 p-4">
+        <div className="size-10 shrink-0 rounded-full bg-white dark:bg-white flex items-center justify-center outline -outline-offset-1 outline-black/5 dark:outline-white/10 overflow-hidden">
+          {(() => {
+            const player = leagueData?.players[playerId]
+            if (player?.search_rank) {
+              return (
+                <Image
+                  src={`https://sleepercdn.com/content/nfl/players/thumb/${playerId}.jpg`}
+                  alt={getPlayerName(playerId)}
+                  className="w-full h-full object-cover"
+                  width={40}
+                  height={40}
+                />
+              )
+            }
+            return null
+          })()}
+          <span className="fallback-text text-sm font-bold text-gray-700 dark:text-gray-300 hidden">
+            {getPlayerPosition(playerId)}
+          </span>
+        </div>
+        <div className="flex-1 truncate">
+          <div className="flex items-center space-x-3">
+            <Link href={`/player/${playerId}`} className="truncate text-base font-medium text-gray-900 dark:text-white">
+              {getPlayerName(playerId)}
+            </Link>
+            <span className="inline-flex shrink-0 items-center rounded-full bg-gray-50 px-2 py-1 text-sm font-medium text-gray-700 inset-ring inset-ring-gray-600/20 dark:bg-gray-500/10 dark:text-gray-400 dark:inset-ring-gray-500/10">
+              {getPlayerPosition(playerId)}
+            </span>
+            <span className="inline-flex shrink-0 items-center rounded-full bg-gray-50 px-2 py-1 text-sm font-medium text-gray-700 inset-ring inset-ring-gray-600/20 dark:bg-gray-500/10 dark:text-gray-400 dark:inset-ring-gray-500/10">
+              {getPlayerTeam(playerId)}
+            </span>
+            {(() => {
+              const byeWeek = getPlayerByeWeek(playerId)
+              if (byeWeek !== null) {
+                return (
+                  <span className="inline-flex shrink-0 items-center rounded-full bg-orange-50 px-1.5 py-0.5 text-xs font-medium text-orange-700 inset-ring inset-ring-orange-600/20 dark:bg-orange-500/10 dark:text-orange-400 dark:inset-ring-orange-500/10">
+                    BYE: {byeWeek}
+                  </span>
+                )
+              }
+              return null
+            })()}
+          </div>
+        </div>
+      </div>
+      <div>
+        <div className="-mt-px flex divide-x divide-gray-200 dark:divide-white/10">
+          <div className="flex w-0 flex-1">
+            <div className="relative -mr-px inline-flex w-0 flex-1 items-center justify-center gap-x-2 rounded-bl-lg border border-transparent py-2 text-xs font-medium text-gray-900 dark:text-white">
+              <span className="text-xs text-gray-500 dark:text-gray-400">Value</span>
+              <span className="text-xs font-medium text-gray-900 dark:text-white">
+                {(() => {
+                  if (dynastyValuesLoading) {
+                    return '...'
+                  }
+                  const dynastyValue = dynastyValues[playerId]
+                  if (dynastyValue?.dynastyValue !== null && dynastyValue?.dynastyValue !== undefined) {
+                    return dynastyValue.dynastyValue.toFixed(1)
+                  }
+                  return 'N/A'
+                })()}
+              </span>
+            </div>
+          </div>
+          <div className="-ml-px flex w-0 flex-1">
+            <div className="relative inline-flex w-0 flex-1 items-center justify-center gap-x-2 rounded-br-lg border border-transparent py-2 text-xs font-medium text-gray-900 dark:text-white">
+              <span className="text-xs text-gray-500 dark:text-gray-400">Age</span>
+              <span className="text-xs font-medium text-gray-900 dark:text-white">
+                {(() => {
+                  const player = leagueData?.players[playerId]
+                  return player?.age || 'N/A'
+                })()}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </li>
   )
 
   // Get current user's team by matching the default saved account to a roster owner.
@@ -517,299 +648,22 @@ export default function LeaguePage() {
                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 sm:p-6">
                   
                   <div className="space-y-4">
-                    {/* Starters Section */}
-                    <div>
-                      <div className="flex items-center gap-2 mb-4">
-                        <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                        <h4 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
-                          Starters ({Array.isArray(myTeam?.starters) ? myTeam.starters.length : 0})
+                    {myTeam && groupPlayersByPosition(getAllRosterPlayerIds(myTeam)).map(group => (
+                      <div key={group.label}>
+                        <h4 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                          {group.label}
                         </h4>
-                      </div>
-                      <ul role="list" className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 sm:gap-4">
-                        {(Array.isArray(myTeam?.starters) ? [...new Set(myTeam.starters)] : []).map((playerId, index) => (
-                          <li
-                            key={`${playerId}-${index}`}
-                            className="col-span-1 divide-y divide-gray-200 rounded-lg bg-white shadow-sm dark:divide-white/10 dark:bg-gray-800/50 dark:shadow-none dark:outline dark:-outline-offset-1 dark:outline-white/10"
-                          >
-                            <div className="flex w-full items-center space-x-3 p-4">
-                              <div className="size-10 shrink-0 rounded-full bg-white dark:bg-white flex items-center justify-center outline -outline-offset-1 outline-black/5 dark:outline-white/10 overflow-hidden">
-                                {(() => {
-                                  const player = leagueData?.players[playerId]
-                                  if (player?.search_rank) {
-                                    return (
-                                      <Image
-                                        src={`https://sleepercdn.com/content/nfl/players/thumb/${playerId}.jpg`}
-                                        alt={getPlayerName(playerId)}
-                                        className="w-full h-full object-cover"
-                                        width={40}
-                                        height={40}
-                                      />
-                                    )
-                                  }
-                                  return null
-                                })()}
-                                <span className="fallback-text text-sm font-bold text-blue-700 dark:text-blue-300 hidden">
-                                  {getPlayerPosition(playerId)}
-                                </span>
-                              </div>
-                              <div className="flex-1 truncate">
-                                <div className="flex items-center space-x-3">
-                                                                    <Link href={`/player/${playerId}`} className="truncate text-base font-medium text-gray-900 dark:text-white">
-                                                                      {getPlayerName(playerId)}
-                                                                    </Link>
-                                   <span className="inline-flex shrink-0 items-center rounded-full bg-blue-50 px-2 py-1 text-sm font-medium text-blue-700 inset-ring inset-ring-blue-600/20 dark:bg-blue-500/10 dark:text-blue-400 dark:inset-ring-blue-500/10">
-                                     {getPlayerPosition(playerId)}
-                                   </span>
-                                   <span className="inline-flex shrink-0 items-center rounded-full bg-gray-50 px-2 py-1 text-sm font-medium text-gray-700 inset-ring inset-ring-gray-600/20 dark:bg-gray-500/10 dark:text-gray-400 dark:inset-ring-gray-500/10">
-                                     {getPlayerTeam(playerId)}
-                                  </span>
-                                  {(() => {
-                                    const byeWeek = getPlayerByeWeek(playerId)
-                                    if (byeWeek !== null) {
-                                      return (
-                                        <span className="inline-flex shrink-0 items-center rounded-full bg-orange-50 px-1.5 py-0.5 text-xs font-medium text-orange-700 inset-ring inset-ring-orange-600/20 dark:bg-orange-500/10 dark:text-orange-400 dark:inset-ring-orange-500/10">
-                                          BYE: {byeWeek}
-                                        </span>
-                                      )
-                                    }
-                                    return null
-                                  })()}
-                                </div>
-                              </div>
-                            </div>
-                            <div>
-                              {/* Row 1: Value, Age */}
-                              <div className="-mt-px flex divide-x divide-gray-200 dark:divide-white/10">
-                                <div className="flex w-0 flex-1">
-                                  <div className="relative -mr-px inline-flex w-0 flex-1 items-center justify-center gap-x-2 rounded-bl-lg border border-transparent py-2 text-xs font-medium text-gray-900 dark:text-white">
-                                    <span className="text-xs text-gray-500 dark:text-gray-400">Value</span>
-                                                                          <span className="text-xs font-medium text-gray-900 dark:text-white">
-                                        {(() => {
-                                          if (dynastyValuesLoading) {
-                                            return '...';
-                                          }
-                                          const dynastyValue = dynastyValues[playerId];
-                                          if (dynastyValue?.dynastyValue !== null && dynastyValue?.dynastyValue !== undefined) {
-                                            return dynastyValue.dynastyValue.toFixed(1);
-                                          }
-                                          return 'N/A';
-                                        })()}
-                                      </span>
-                                  </div>
-                                </div>
-                                <div className="-ml-px flex w-0 flex-1">
-                                  <div className="relative inline-flex w-0 flex-1 items-center justify-center gap-x-2 rounded-br-lg border border-transparent py-2 text-xs font-medium text-gray-900 dark:text-white">
-                                    <span className="text-xs text-gray-500 dark:text-gray-400">Age</span>
-                                    <span className="text-xs font-medium text-gray-900 dark:text-white">
-                                      {(() => {
-                                        const player = leagueData?.players[playerId]
-                                        return player?.age || 'N/A'
-                                      })()}
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    {/* Bench Section */}
-                    <div>
-                      <div className="flex items-center gap-2 mb-4">
-                        <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
-                        <h4 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
-                          Bench ({Array.isArray(myTeam?.reserve) ? myTeam.reserve.length : 0})
-                        </h4>
-                      </div>
-                      <ul role="list" className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 sm:gap-4">
-                        {(Array.isArray(myTeam?.reserve) ? [...new Set(myTeam.reserve)] : []).map((playerId, index) => (
-                          <li
-                            key={`${playerId}-${index}`}
-                            className="col-span-1 divide-y divide-gray-200 rounded-lg bg-white shadow-sm dark:divide-white/10 dark:bg-gray-800/50 dark:shadow-none dark:outline dark:-outline-offset-1 dark:outline-white/10"
-                          >
-                            <div className="flex w-full items-center space-x-3 p-4">
-                              <div className="size-10 shrink-0 rounded-full bg-white dark:bg-white flex items-center justify-center outline -outline-offset-1 outline-black/5 dark:outline-white/10 overflow-hidden">
-                                {(() => {
-                                  const player = leagueData?.players[playerId]
-                                  if (player?.search_rank) {
-                                    return (
-                                      <Image
-                                        src={`https://sleepercdn.com/content/nfl/players/thumb/${playerId}.jpg`}
-                                        alt={getPlayerName(playerId)}
-                                        className="w-full h-full object-cover"
-                                        width={40}
-                                        height={40}
-                                      />
-                                    )
-                                  }
-                                  return null
-                                })()}
-                                <span className="fallback-text text-sm font-bold text-gray-700 dark:text-gray-300 hidden">
-                                  {getPlayerPosition(playerId)}
-                                </span>
-                              </div>
-                              <div className="flex-1 truncate">
-                                <div className="flex items-center space-x-3">
-                                                                    <Link href={`/player/${playerId}`} className="truncate text-base font-medium text-gray-900 dark:text-white">
-                                                                      {getPlayerName(playerId)}
-                                                                    </Link>
-                                   <span className="inline-flex shrink-0 items-center rounded-full bg-gray-50 px-2 py-1 text-sm font-medium text-gray-700 inset-ring inset-ring-gray-600/20 dark:bg-gray-500/10 dark:text-gray-400 dark:inset-ring-gray-500/10">
-                                     {getPlayerPosition(playerId)}
-                                   </span>
-                                   <span className="inline-flex shrink-0 items-center rounded-full bg-gray-50 px-2 py-1 text-sm font-medium text-gray-700 inset-ring inset-ring-gray-600/20 dark:bg-gray-500/10 dark:text-gray-400 dark:inset-ring-gray-500/10">
-                                     {getPlayerTeam(playerId)}
-                                  </span>
-                                  {(() => {
-                                    const byeWeek = getPlayerByeWeek(playerId)
-                                    if (byeWeek !== null) {
-                                      return (
-                                        <span className="inline-flex shrink-0 items-center rounded-full bg-orange-50 px-1.5 py-0.5 text-xs font-medium text-orange-700 inset-ring inset-ring-orange-600/20 dark:bg-orange-500/10 dark:text-orange-400 dark:inset-ring-orange-500/10">
-                                          BYE: {byeWeek}
-                                        </span>
-                                      )
-                                    }
-                                    return null
-                                  })()}
-                                </div>
-                              </div>
-                            </div>
-                            <div>
-                              {/* Row 1: Value, Age */}
-                              <div className="-mt-px flex divide-x divide-gray-200 dark:divide-white/10">
-                                <div className="flex w-0 flex-1">
-                                  <div className="relative -mr-px inline-flex w-0 flex-1 items-center justify-center gap-x-2 rounded-bl-lg border border-transparent py-2 text-xs font-medium text-gray-900 dark:text-white">
-                                    <span className="text-xs text-gray-500 dark:text-gray-400">Value</span>
-                                    <span className="text-xs font-medium text-gray-900 dark:text-white">
-                                      {(() => {
-                                        const dynastyValue = dynastyValues[playerId];
-                                        if (dynastyValue?.dynastyValue !== null && dynastyValue?.dynastyValue !== undefined) {
-                                          return dynastyValue.dynastyValue.toFixed(1);
-                                        }
-                                        return 'N/A';
-                                      })()}
-                                    </span>
-                                  </div>
-                                </div>
-                                <div className="-ml-px flex w-0 flex-1">
-                                  <div className="relative inline-flex w-0 flex-1 items-center justify-center gap-x-2 rounded-br-lg border border-transparent py-2 text-xs font-medium text-gray-900 dark:text-white">
-                                    <span className="text-xs text-gray-500 dark:text-gray-400">Age</span>
-                                    <span className="text-xs font-medium text-gray-900 dark:text-white">
-                                      {(() => {
-                                        const player = leagueData?.players[playerId]
-                                        return player?.age || 'N/A'
-                                      })()}
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    {/* Taxi Squad Section */}
-                    {Array.isArray(myTeam?.taxi) && myTeam.taxi.length > 0 && (
-                      <div>
-                        <div className="flex items-center gap-2 mb-4">
-                          <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                          <h4 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
-                            Taxi Squad ({myTeam.taxi.length})
-                          </h4>
-                        </div>
-                        <ul role="list" className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 sm:gap-4">
-                          {myTeam.taxi.map((playerId) => (
-                            <li
-                              key={playerId}
-                              className="col-span-1 divide-y divide-gray-200 rounded-lg bg-white shadow-sm dark:divide-white/10 dark:bg-gray-800/50 dark:shadow-none dark:outline dark:-outline-offset-1 dark:outline-white/10"
-                            >
-                              <div className="flex w-full items-center space-x-3 p-4">
-                                <div className="size-10 shrink-0 rounded-full bg-white dark:bg-white flex items-center justify-center outline -outline-offset-1 outline-black/5 dark:outline-white/10 overflow-hidden">
-                                  {(() => {
-                                    const player = leagueData?.players[playerId]
-                                                                      if (player?.search_rank) {
-                                    return (
-                                      <Image
-                                        src={`https://sleepercdn.com/content/nfl/players/thumb/${playerId}.jpg`}
-                                        alt={getPlayerName(playerId)}
-                                        className="w-full h-full object-cover"
-                                        width={40}
-                                        height={40}
-                                      />
-                                    )
-                                  }
-                                    return null
-                                  })()}
-                                  <span className="fallback-text text-sm font-bold text-yellow-700 dark:text-yellow-300 hidden">
-                                    {getPlayerPosition(playerId)}
-                                  </span>
-                                </div>
-                                <div className="flex-1 truncate">
-                                  <div className="flex items-center space-x-3">
-                                                                       <Link href={`/player/${playerId}`} className="truncate text-base font-medium text-gray-900 dark:text-white">
-                                                                         {getPlayerName(playerId)}
-                                                                       </Link>
-                                   <span className="inline-flex shrink-0 items-center rounded-full bg-yellow-50 px-2 py-1 text-sm font-medium text-yellow-700 inset-ring inset-ring-yellow-600/20 dark:bg-yellow-500/10 dark:text-yellow-400 dark:inset-ring-yellow-500/10">
-                                     {getPlayerPosition(playerId)}
-                                   </span>
-                                   <span className="inline-flex shrink-0 items-center rounded-full bg-gray-50 px-2 py-1 text-sm font-medium text-gray-700 inset-ring inset-ring-gray-600/20 dark:bg-gray-500/10 dark:text-gray-400 dark:inset-ring-gray-500/10">
-                                     {getPlayerTeam(playerId)}
-                                    </span>
-                                    {(() => {
-                                      const byeWeek = getPlayerByeWeek(playerId)
-                                      if (byeWeek !== null) {
-                                        return (
-                                          <span className="inline-flex shrink-0 items-center rounded-full bg-orange-50 px-1.5 py-0.5 text-xs font-medium text-orange-700 inset-ring inset-ring-orange-600/20 dark:bg-orange-500/10 dark:text-orange-400 dark:inset-ring-orange-500/10">
-                                            BYE: {byeWeek}
-                                          </span>
-                                        )
-                                      }
-                                      return null
-                                    })()}
-                                  </div>
-                                </div>
-                              </div>
-                              <div>
-                                {/* Row 1: Value, Age */}
-                                <div className="-mt-px flex divide-x divide-gray-200 dark:divide-white/10">
-                                  <div className="flex w-0 flex-1">
-                                    <div className="relative -mr-px inline-flex w-0 flex-1 items-center justify-center gap-x-2 rounded-bl-lg border border-transparent py-2 text-xs font-medium text-gray-900 dark:text-white">
-                                      <span className="text-xs text-gray-500 dark:text-gray-400">Value</span>
-                                      <span className="text-xs font-medium text-gray-900 dark:text-white">
-                                        {(() => {
-                                          const dynastyValue = dynastyValues[playerId];
-                                          if (dynastyValue?.dynastyValue !== null && dynastyValue?.dynastyValue !== undefined) {
-                                            return dynastyValue.dynastyValue.toFixed(1);
-                                          }
-                                          return 'N/A';
-                                        })()}
-                                      </span>
-                                    </div>
-                                  </div>
-                                  <div className="-ml-px flex w-0 flex-1">
-                                    <div className="relative inline-flex w-0 flex-1 items-center justify-center gap-x-2 rounded-br-lg border border-transparent py-2 text-xs font-medium text-gray-900 dark:text-white">
-                                      <span className="text-xs text-gray-500 dark:text-gray-400">Age</span>
-                                      <span className="text-xs font-medium text-gray-900 dark:text-white">
-                                        {(() => {
-                                          const player = leagueData?.players[playerId]
-                                          return player?.age || 'N/A'
-                                        })()}
-                                      </span>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </li>
+                        <ul role="list" className="flex flex-col gap-3 md:flex-row md:flex-wrap md:gap-4">
+                          {group.players.map(playerId => (
+                            <PlayerCard key={playerId} playerId={playerId} />
                           ))}
                         </ul>
                       </div>
-                    )}
+                    ))}
                   </div>
 
                   {/* Empty State */}
-                  {(!myTeam || (Array.isArray(myTeam.starters) ? myTeam.starters.length : 0) === 0 && (Array.isArray(myTeam.reserve) ? myTeam.reserve.length : 0) === 0 && (Array.isArray(myTeam.taxi) ? myTeam.taxi.length : 0) === 0) && (
+                  {(!myTeam || getAllRosterPlayerIds(myTeam).length === 0) && (
                     <div className="text-center py-8 sm:py-12">
                       <div className="text-gray-400 dark:text-gray-500 text-4xl sm:text-6xl mb-4">🏈</div>
                       <p className="text-gray-500 dark:text-gray-400 text-base sm:text-lg">No players on your roster yet</p>
@@ -825,8 +679,9 @@ export default function LeaguePage() {
                     {['QB', 'RB', 'WR', 'TE', 'K', 'DEF'].map(position => {
                       const positionPlayers = myTeam ? [
                         ...(Array.isArray(myTeam.starters) ? myTeam.starters : []),
-                        ...(Array.isArray(myTeam.reserve) ? myTeam.reserve : []),
-                        ...(Array.isArray(myTeam.taxi) ? myTeam.taxi : [])
+                        ...(Array.isArray(myTeam.bench) ? myTeam.bench : []),
+                        ...(Array.isArray(myTeam.taxi) ? myTeam.taxi : []),
+                        ...(Array.isArray(myTeam.reserve) ? myTeam.reserve : [])
                       ].filter(playerId => {
                         const player = leagueData?.players[playerId]
                         return player?.position === position
@@ -970,207 +825,28 @@ export default function LeaguePage() {
                         </div>
                         <div className="text-right text-xs sm:text-sm">
                           <div className="text-gray-500 dark:text-gray-400">
-                            {(Array.isArray(roster.starters) ? roster.starters.length : 0) + (Array.isArray(roster.reserve) ? roster.reserve.length : 0)} players
-                          </div>
-                          <div className="text-gray-400 dark:text-gray-500">
-                            {Array.isArray(roster.starters) ? roster.starters.length : 0} starters
+                            {getAllRosterPlayerIds(roster).length} players
                           </div>
                         </div>
                       </div>
+                      {groupPlayersByPosition(getAllRosterPlayerIds(roster)).map(group => (
+                        <div key={group.label} className="mb-4">
+                          <h4 className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            {group.label} ({group.players.length})
+                          </h4>
+                          <ul role="list" className="flex flex-col gap-3 md:flex-row md:flex-wrap md:gap-4">
+                            {group.players.map(playerId => (
+                              <PlayerCard key={playerId} playerId={playerId} />
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
 
-                                             <div className="mb-4">
-                         <h4 className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
-                           <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                           Starters ({Array.isArray(roster.starters) ? roster.starters.length : 0})
-                         </h4>
-                         <ul role="list" className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 sm:gap-4">
-                           {(Array.isArray(roster.starters) ? roster.starters : []).map((playerId) => (
-                             <li
-                               key={playerId}
-                               className="col-span-1 divide-y divide-gray-200 rounded-lg bg-white shadow-sm dark:divide-white/10 dark:bg-gray-800/50 dark:shadow-none dark:outline dark:-outline-offset-1 dark:outline-white/10"
-                             >
-                               <div className="flex w-full items-center space-x-3 p-4">
-                                 <div className="size-10 shrink-0 rounded-full bg-white dark:bg-white flex items-center justify-center overflow-hidden">
-                                   {(() => {
-                                     const player = leagueData?.players[playerId]
-                                     if (player?.search_rank) {
-                                       return (
-                                         <Image
-                                           src={`https://sleepercdn.com/content/nfl/players/thumb/${playerId}.jpg`}
-                                           alt={getPlayerName(playerId)}
-                                           className="w-full h-full object-cover"
-                                           width={40}
-                                           height={40}
-                                         />
-                                       )
-                                     }
-                                     return null
-                                   })()}
-                                   <span className="fallback-text text-sm font-bold text-blue-700 dark:text-blue-300 hidden">
-                                     {getPlayerPosition(playerId)}
-                                   </span>
-                                 </div>
-                                 <div className="flex-1 truncate">
-                                   <div className="flex items-center space-x-3">
-                                    <Link href={`/player/${playerId}`} className="truncate text-base font-medium text-gray-900 dark:text-white">
-                                      {getPlayerName(playerId)}
-                                    </Link>
-                                     <span className="inline-flex shrink-0 items-center rounded-full bg-blue-50 px-2 py-1 text-sm font-medium text-blue-700 inset-ring inset-ring-blue-600/20 dark:bg-blue-500/10 dark:text-blue-400 dark:inset-ring-blue-500/10">
-                                       {getPlayerPosition(playerId)}
-                                     </span>
-                                     <span className="inline-flex shrink-0 items-center rounded-full bg-gray-50 px-2 py-1 text-sm font-medium text-gray-700 inset-ring inset-ring-gray-600/20 dark:bg-gray-500/10 dark:text-gray-400 dark:inset-ring-gray-500/10">
-                                       {getPlayerTeam(playerId)}
-                                     </span>
-                                     {(() => {
-                                       const byeWeek = getPlayerByeWeek(playerId)
-                                       if (byeWeek !== null) {
-                                         return (
-                                           <span className="inline-flex shrink-0 items-center rounded-full bg-orange-50 px-1.5 py-0.5 text-xs font-medium text-orange-700 inset-ring inset-ring-orange-600/20 dark:bg-orange-500/10 dark:text-orange-400 dark:inset-ring-orange-500/10">
-                                             BYE: {byeWeek}
-                                           </span>
-                                         )
-                                       }
-                                       return null
-                                     })()}
-                                   </div>
-                                 </div>
-                               </div>
-                               <div>
-                                 {/* Row 1: Value, Age */}
-                                 <div className="-mt-px flex divide-x divide-gray-200 dark:divide-white/10">
-                                   <div className="flex w-0 flex-1">
-                                     <div className="relative -mr-px inline-flex w-0 flex-1 items-center justify-center gap-x-2 rounded-bl-lg border border-transparent py-2 text-xs font-medium text-gray-900 dark:text-white">
-                                       <span className="text-xs text-gray-500 dark:text-gray-400">Value</span>
-                                       <span className="text-xs font-medium text-gray-900 dark:text-white">
-                                         {(() => {
-                                           const dynastyValue = dynastyValues[playerId];
-                                           if (dynastyValue?.dynastyValue !== null && dynastyValue?.dynastyValue !== undefined) {
-                                             return dynastyValue.dynastyValue.toFixed(1);
-                                           }
-                                           return 'N/A';
-                                         })()}
-                                       </span>
-                                     </div>
-                                   </div>
-                                   <div className="-ml-px flex w-0 flex-1">
-                                     <div className="relative inline-flex w-0 flex-1 items-center justify-center gap-x-2 rounded-br-lg border border-transparent py-2 text-xs font-medium text-gray-900 dark:text-white">
-                                       <span className="text-xs text-gray-500 dark:text-gray-400">Age</span>
-                                       <span className="text-xs font-medium text-gray-900 dark:text-white">
-                                         {(() => {
-                                           const player = leagueData?.players[playerId]
-                                           return player?.age || 'N/A'
-                                         })()}
-                                       </span>
-                                     </div>
-                                   </div>
-                                 </div>
-                               </div>
-                             </li>
-                           ))}
-                         </ul>
-                       </div>
-
-                                             {Array.isArray(roster.reserve) && roster.reserve.length > 0 && (
-                         <div>
-                           <h4 className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
-                             <span className="w-2 h-2 bg-gray-500 rounded-full"></span>
-                             Bench ({roster.reserve.length})
-                           </h4>
-                           <ul role="list" className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 sm:gap-4">
-                             {roster.reserve.map((playerId) => {
-                               return (
-                                 <li
-                                   key={playerId}
-                                   className="col-span-1 divide-y divide-gray-200 rounded-lg bg-white shadow-sm dark:divide-white/10 dark:bg-gray-800/50 dark:shadow-none dark:outline dark:-outline-offset-1 dark:outline-white/10"
-                                 >
-                                   <div className="flex w-full items-center space-x-3 p-4">
-                                     <div className="size-10 shrink-0 rounded-full bg-white dark:bg-white flex items-center justify-center overflow-hidden">
-                                       {(() => {
-                                         const player = leagueData?.players[playerId]
-                                         if (player?.search_rank) {
-                                           return (
-                                             <Image
-                                               src={`https://sleepercdn.com/content/nfl/players/thumb/${playerId}.jpg`}
-                                               alt={getPlayerName(playerId)}
-                                               className="w-full h-full object-cover"
-                                               width={40}
-                                               height={40}
-                                             />
-                                           )
-                                         }
-                                         return null
-                                       })()}
-                                       <span className="fallback-text text-sm font-bold text-gray-700 dark:text-gray-300 hidden">
-                                         {getPlayerPosition(playerId)}
-                                       </span>
-                                     </div>
-                                     <div className="flex-1 truncate">
-                                       <div className="flex items-center space-x-3">
-                                        <Link href={`/player/${playerId}`} className="truncate text-base font-medium text-gray-900 dark:text-white">
-                                          {getPlayerName(playerId)}
-                                        </Link>
-                                         <span className="inline-flex shrink-0 items-center rounded-full bg-gray-50 px-2 py-1 text-sm font-medium text-gray-700 inset-ring inset-ring-gray-600/20 dark:bg-gray-500/10 dark:text-gray-400 dark:inset-ring-gray-500/10">
-                                           {getPlayerPosition(playerId)}
-                                         </span>
-                                         <span className="inline-flex shrink-0 items-center rounded-full bg-gray-50 px-2 py-1 text-sm font-medium text-gray-700 inset-ring inset-ring-gray-600/20 dark:bg-gray-500/10 dark:text-gray-400 dark:inset-ring-gray-500/10">
-                                           {getPlayerTeam(playerId)}
-                                         </span>
-                                         {(() => {
-                                           const byeWeek = getPlayerByeWeek(playerId)
-                                           if (byeWeek !== null) {
-                                             return (
-                                               <span className="inline-flex shrink-0 items-center rounded-full bg-orange-50 px-1.5 py-0.5 text-xs font-medium text-orange-700 inset-ring inset-ring-orange-600/20 dark:bg-orange-500/10 dark:text-orange-400 dark:inset-ring-orange-500/10">
-                                                 BYE: {byeWeek}
-                                               </span>
-                                             )
-                                           }
-                                           return null
-                                         })()}
-                                       </div>
-                                     </div>
-                                   </div>
-                                   <div>
-                                     {/* Row 1: Value, Age */}
-                                     <div className="-mt-px flex divide-x divide-gray-200 dark:divide-white/10">
-                                       <div className="flex w-0 flex-1">
-                                         <div className="relative -mr-px inline-flex w-0 flex-1 items-center justify-center gap-x-2 rounded-bl-lg border border-transparent py-2 text-xs font-medium text-gray-900 dark:text-white">
-                                           <span className="text-xs text-gray-500 dark:text-gray-400">Value</span>
-                                           <span className="text-xs font-medium text-gray-900 dark:text-white">
-                                             {(() => {
-                                               const dynastyValue = dynastyValues[playerId];
-                                               if (dynastyValue?.dynastyValue !== null && dynastyValue?.dynastyValue !== undefined) {
-                                                 return dynastyValue.dynastyValue.toFixed(1);
-                                               }
-                                               return 'N/A';
-                                             })()}
-                                           </span>
-                                         </div>
-                                       </div>
-                                       <div className="-ml-px flex w-0 flex-1">
-                                         <div className="relative inline-flex w-0 flex-1 items-center justify-center gap-x-2 rounded-br-lg border border-transparent py-2 text-xs font-medium text-gray-900 dark:text-white">
-                                           <span className="text-xs text-gray-500 dark:text-gray-400">Age</span>
-                                                                                        <span className="text-xs font-medium text-gray-900 dark:text-white">
-                                               {(() => {
-                                                 const playerData = leagueData?.players[playerId]
-                                                 return playerData?.age || 'N/A'
-                                               })()}
-                                             </span>
-                                         </div>
-                                       </div>
-                                     </div>
-                                   </div>
-                                 </li>
-                               )
-                             })}
-                           </ul>
-                         </div>
-                       )}
-                       
-                       {(Array.isArray(roster.starters) ? roster.starters.length : 0) === 0 && (Array.isArray(roster.reserve) ? roster.reserve.length : 0) === 0 && (
-                         <div className="text-center py-4 text-gray-500 dark:text-gray-400">
-                           <p className="text-xs sm:text-sm">No players on roster</p>
-                         </div>
-                       )}
+                      {getAllRosterPlayerIds(roster).length === 0 && (
+                        <div className="text-center py-4 text-gray-500 dark:text-gray-400">
+                          <p className="text-xs sm:text-sm">No players on roster</p>
+                        </div>
+                      )}
                      </div>
                   )
                 })}
