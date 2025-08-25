@@ -9,3 +9,5 @@ export { CTA } from './CTA'
 export { Footer } from './Footer'
 
 
+export { Input } from './ui/Input'
+export { Button } from './ui/Button'
