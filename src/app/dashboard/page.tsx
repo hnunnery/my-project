@@ -55,16 +55,22 @@ export default function Dashboard() {
   }>({})
   const [showSuccess, setShowSuccess] = useState(false)
 
+  const normalizeUsername = (name: string) => name.trim().toLowerCase()
+
   // Load saved accounts and stored leagues from localStorage on component mount
   useEffect(() => {
     const saved = localStorage.getItem('sleeperAccounts')
     if (saved) {
       try {
         const accounts = JSON.parse(saved) as SavedSleeperAccount[]
-        setSavedAccounts(accounts)
-        
+        const normalizedAccounts = accounts.map(acc => ({
+          ...acc,
+          username: normalizeUsername(acc.username)
+        }))
+        setSavedAccounts(normalizedAccounts)
+
         // Set default account username if exists
-        const defaultAccount = accounts.find(acc => acc.isDefault)
+        const defaultAccount = normalizedAccounts.find(acc => acc.isDefault)
         if (defaultAccount) {
           setSleeperUsername(defaultAccount.username)
         }
@@ -78,7 +84,11 @@ export default function Dashboard() {
     if (stored) {
       try {
         const leagues = JSON.parse(stored)
-        setStoredLeagues(leagues)
+        const normalizedLeagues: typeof storedLeagues = {}
+        Object.keys(leagues).forEach(key => {
+          normalizedLeagues[normalizeUsername(key)] = leagues[key]
+        })
+        setStoredLeagues(normalizedLeagues)
       } catch (error) {
         console.error('Error loading stored leagues:', error)
       }
@@ -87,8 +97,9 @@ export default function Dashboard() {
 
   // Auto-load stored data when username changes
   useEffect(() => {
-    if (sleeperUsername && storedLeagues[sleeperUsername]) {
-      const storedData = storedLeagues[sleeperUsername]
+    const normalized = normalizeUsername(sleeperUsername)
+    if (normalized && storedLeagues[normalized]) {
+      const storedData = storedLeagues[normalized]
       setSleeperData({ user: storedData.user, leagues: storedData.leagues })
     } else if (!showSuccess) {
       setSleeperData(null)
@@ -97,9 +108,10 @@ export default function Dashboard() {
 
   // Auto-fetch data for default account if no data exists
   useEffect(() => {
-    if (sleeperUsername && !sleeperData && !isLoadingSleeper) {
+    const normalized = normalizeUsername(sleeperUsername)
+    if (normalized && !sleeperData && !isLoadingSleeper) {
       // Check if we have stored data that's fresh
-      const storedData = storedLeagues[sleeperUsername]
+      const storedData = storedLeagues[normalized]
       const isDataFresh = storedData && (Date.now() - storedData.lastUpdated) < 24 * 60 * 60 * 1000 // 24 hours
       
       if (!storedData || !isDataFresh) {
@@ -148,14 +160,14 @@ export default function Dashboard() {
       // Update existing account
       setSavedAccounts(prev => prev.map(acc => 
         acc.userId === user.user_id 
-          ? { ...acc, username: user.username, displayName: user.display_name || user.username, avatar: user.avatar, lastUsed: Date.now() }
+          ? { ...acc, username: normalizeUsername(user.username), displayName: user.display_name || user.username, avatar: user.avatar, lastUsed: Date.now() }
           : acc
       ))
     } else {
       // Add new account
       const newAccount: SavedSleeperAccount = {
         id: Date.now().toString(),
-        username: user.username,
+        username: normalizeUsername(user.username),
         displayName: user.display_name || user.username,
         userId: user.user_id,
         avatar: user.avatar,
@@ -194,13 +206,13 @@ export default function Dashboard() {
     if (accountToRemove) {
       setStoredLeagues(prev => {
         const updated = { ...prev }
-        delete updated[accountToRemove.username]
+        delete updated[normalizeUsername(accountToRemove.username)]
         return updated
       })
     }
 
     // Clear username if it was the removed account
-    if (accountToRemove?.username === sleeperUsername) {
+    if (accountToRemove && normalizeUsername(accountToRemove.username) === normalizeUsername(sleeperUsername)) {
       setSleeperUsername('')
     }
   }
@@ -208,10 +220,11 @@ export default function Dashboard() {
 
 
   const fetchSleeperData = useCallback(async (forceRefresh = false) => {
-    if (!sleeperUsername.trim()) return
+    const normalizedUsername = normalizeUsername(sleeperUsername)
+    if (!normalizedUsername) return
 
     // Check if we have stored data and it's not stale (less than 24 hours old)
-    const storedData = storedLeagues[sleeperUsername]
+    const storedData = storedLeagues[normalizedUsername]
     const twentyFourHours = 24 * 60 * 60 * 1000 // 24 hours in milliseconds
     
     if (!forceRefresh && storedData && (Date.now() - storedData.lastUpdated) < twentyFourHours) {
@@ -226,7 +239,7 @@ export default function Dashboard() {
     
     try {
       // First get user info
-      const userResponse = await fetch(`https://api.sleeper.app/v1/user/${sleeperUsername}`)
+      const userResponse = await fetch(`https://api.sleeper.app/v1/user/${normalizedUsername}`)
       if (!userResponse.ok) throw new Error('User not found')
       
       const user: SleeperUser = await userResponse.json()
@@ -251,8 +264,9 @@ export default function Dashboard() {
       const leagues: SleeperLeague[] = await leaguesResponse.json()
 
       // Store the new data
+      const userKey = normalizeUsername(user.username)
       const newData = { user, leagues, lastUpdated: Date.now() }
-      setStoredLeagues(prev => ({ ...prev, [sleeperUsername]: newData }))
+      setStoredLeagues(prev => ({ ...prev, [userKey]: newData }))
 
       setSleeperData({ user, leagues })
 
@@ -278,11 +292,12 @@ export default function Dashboard() {
   // Auto-fetch data for default account after function is defined
   useEffect(() => {
     // Only auto-fetch if this is a saved account (not just typing in the input)
-    const isSavedAccount = savedAccounts.some(acc => acc.username === sleeperUsername)
-    
-    if (sleeperUsername && !sleeperData && !isLoadingSleeper && isSavedAccount) {
+    const normalized = normalizeUsername(sleeperUsername)
+    const isSavedAccount = savedAccounts.some(acc => normalizeUsername(acc.username) === normalized)
+
+    if (normalized && !sleeperData && !isLoadingSleeper && isSavedAccount) {
       // Check if we have stored data that's fresh
-      const storedData = storedLeagues[sleeperUsername]
+      const storedData = storedLeagues[normalized]
       const isDataFresh = storedData && (Date.now() - storedData.lastUpdated) < 24 * 60 * 60 * 1000 // 24 hours
       
       if (!storedData || !isDataFresh) {
@@ -363,7 +378,7 @@ export default function Dashboard() {
                    const selectedAccount = savedAccounts.find(acc => acc.isDefault)
                    if (!selectedAccount) return null
                    
-                   const accountData = storedLeagues[selectedAccount.username]
+                  const accountData = storedLeagues[normalizeUsername(selectedAccount.username)]
                    if (!accountData) return null
                    
                    return (
@@ -385,7 +400,7 @@ export default function Dashboard() {
                  const selectedAccount = savedAccounts.find(acc => acc.isDefault)
                  if (!selectedAccount) return null
                  
-                 const accountData = storedLeagues[selectedAccount.username]
+                 const accountData = storedLeagues[normalizeUsername(selectedAccount.username)]
                  if (!accountData) {
                    return (
                      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
@@ -442,6 +457,7 @@ export default function Dashboard() {
                   <input
                     type="text"
                     id="sleeper-username"
+                    name="sleeper-username"
                     value={sleeperUsername}
                     onChange={(e) => setSleeperUsername(e.target.value)}
                     onKeyDown={(e) => {
