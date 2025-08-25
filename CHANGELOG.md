@@ -12,12 +12,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Debug Sections**: Added comprehensive debugging for roster data to identify bench player display issues
 - **Bench Player Calculation**: Implemented fallback logic to calculate bench players when Sleeper API reserve field is empty
 - **Generic Player Page**: Created placeholder player page with "Coming Soon" message for future player details functionality
+- **Leagues Refresh Skeleton**: Show skeleton loader while refreshing leagues via dashboard refresh button
 
 ### Changed
 - **Dynasty Value Formula**: Removed risk score, updated weights to Market (50%), Projection (25%), Age (25%)
 - **ADP Normalization**: Changed from position-based to global ADP normalization
 - **UI Restructuring**: Removed standalone dynasty values and assistant pages from dashboard
 - **Chat Component Styling**: Streamlined chat interface with mobile-first design, removed header and borders
+- **My Leagues Header**: Renamed "Your Leagues" to "My Leagues" and display league count next to title
 
 ### Fixed
 - **Prisma Permission Issues**: Implemented robust Prisma generation with fallback scripts and PowerShell automation
