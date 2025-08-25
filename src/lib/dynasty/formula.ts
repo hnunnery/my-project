@@ -5,8 +5,8 @@ interface ScoreInputs {
 
 export function composite({ marketValue, ageScore }: ScoreInputs): number {
   const weights = {
-    market: 0.75,
-    age: 0.25,
+    market: 0.85,
+    age: 0.15,
   };
 
   const weighted = marketValue * weights.market + ageScore * weights.age;

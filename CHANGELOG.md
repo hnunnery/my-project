@@ -10,9 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - **Dynasty Value Saturation**: Fixed issue where players with very low ADP values (like ADP 15) were getting normalized to 100 dynasty values
   - Reduced logistic normalization steepness from k=10 to k=6 for less aggressive scaling
-  - Capped maximum normalized market value at 95 instead of 100
+  - Capped maximum normalized market value at 100 (reverted from 95)
   - Added age score cap at 90 to prevent extreme values
-  - Implemented composite formula cap at 95 for additional protection
+  - Updated composite formula weights to 85% market value + 15% age score
   - This ensures dynasty values have realistic ranges and better differentiation between elite players
 - **Dashboard Null User Error**: Fixed "Cannot read properties of null (reading 'user_id')" error in dashboard
   - Added null checks for user object before accessing user_id and username properties
