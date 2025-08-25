@@ -155,6 +155,8 @@ export async function runDynastyETL(asOf = new Date('2025-01-01')) {
     let ageScore: number | null = null;
     if (p.ageYears !== null) {
       ageScore = Math.round(ageMultiplier(p.pos, p.ageYears) * 100);
+      // Cap age score at 90 to prevent saturation
+      ageScore = Math.min(ageScore, 90);
     }
 
     let dynastyValue: number | null = null;
