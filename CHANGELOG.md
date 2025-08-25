@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Dynasty Assistant Integration**: Moved AI assistant chatbot to the league page chat tab
 - **Debug Sections**: Added comprehensive debugging for roster data to identify bench player display issues
 - **Bench Player Calculation**: Implemented fallback logic to calculate bench players when Sleeper API reserve field is empty
+- **Generic Player Page**: Created placeholder player page with "Coming Soon" message for future player details functionality
 
 ### Changed
 - **Dynasty Value Formula**: Removed risk score, updated weights to Market (50%), Projection (25%), Age (25%)
