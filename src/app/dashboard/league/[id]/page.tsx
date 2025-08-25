@@ -247,6 +247,8 @@ export default function LeaguePage() {
     return null
   }
 
+  const positionOrder = ['QB', 'RB', 'WR', 'TE', 'K', 'DL', 'LB', 'DB']
+
   const searchPlayers = (query: string) => {
     if (!leagueData?.players || !query.trim()) {
       setSearchResults([])
@@ -364,6 +366,14 @@ export default function LeaguePage() {
 
   const myTeam = getMyTeam()
   const myTeamOwner = myTeam ? getUserByOwnerId(myTeam.owner_id) : null
+
+  const allRosterPlayerIds = myTeam
+    ? Array.from(new Set([
+        ...(Array.isArray(myTeam.starters) ? myTeam.starters : []),
+        ...(Array.isArray(myTeam.reserve) ? myTeam.reserve : []),
+        ...(Array.isArray(myTeam.taxi) ? myTeam.taxi : [])
+      ]))
+    : []
 
   const filteredRosters = leagueData?.rosters.filter(roster => {
     if (!searchTerm) return true
@@ -514,294 +524,124 @@ export default function LeaguePage() {
                                  {/* Detailed Roster */}
                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 sm:p-6">
                   
-                  <div className="space-y-4">
-                    {/* Starters Section */}
-                    <div>
-                      <div className="flex items-center gap-2 mb-4">
-                        <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                        <h4 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
-                          Starters ({Array.isArray(myTeam?.starters) ? myTeam.starters.length : 0})
-                        </h4>
-                      </div>
-                      <ul role="list" className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 sm:gap-4">
-                        {(Array.isArray(myTeam?.starters) ? [...new Set(myTeam.starters)] : []).map((playerId, index) => (
-                          <li
-                            key={`${playerId}-${index}`}
-                            className="col-span-1 divide-y divide-gray-200 rounded-lg bg-white shadow-sm dark:divide-white/10 dark:bg-gray-800/50 dark:shadow-none dark:outline dark:-outline-offset-1 dark:outline-white/10"
-                          >
-                            <div className="flex w-full items-center space-x-3 p-4">
-                              <div className="size-10 shrink-0 rounded-full bg-white dark:bg-white flex items-center justify-center outline -outline-offset-1 outline-black/5 dark:outline-white/10 overflow-hidden">
-                                {(() => {
-                                  const player = leagueData?.players[playerId]
-                                  if (player?.search_rank) {
-                                    return (
-                                      <Image
-                                        src={`https://sleepercdn.com/content/nfl/players/thumb/${playerId}.jpg`}
-                                        alt={getPlayerName(playerId)}
-                                        className="w-full h-full object-cover"
-                                        width={40}
-                                        height={40}
-                                      />
-                                    )
-                                  }
-                                  return null
-                                })()}
-                                <span className="fallback-text text-sm font-bold text-blue-700 dark:text-blue-300 hidden">
-                                  {getPlayerPosition(playerId)}
-                                </span>
-                              </div>
-                              <div className="flex-1 truncate">
-                                <div className="flex items-center space-x-3">
-                                                                     <h3 className="truncate text-base font-medium text-gray-900 dark:text-white">{getPlayerName(playerId)}</h3>
-                                   <span className="inline-flex shrink-0 items-center rounded-full bg-blue-50 px-2 py-1 text-sm font-medium text-blue-700 inset-ring inset-ring-blue-600/20 dark:bg-blue-500/10 dark:text-blue-400 dark:inset-ring-blue-500/10">
-                                     {getPlayerPosition(playerId)}
-                                   </span>
-                                   <span className="inline-flex shrink-0 items-center rounded-full bg-gray-50 px-2 py-1 text-sm font-medium text-gray-700 inset-ring inset-ring-gray-600/20 dark:bg-gray-500/10 dark:text-gray-400 dark:inset-ring-gray-500/10">
-                                     {getPlayerTeam(playerId)}
-                                  </span>
-                                  {(() => {
-                                    const byeWeek = getPlayerByeWeek(playerId)
-                                    if (byeWeek !== null) {
-                                      return (
-                                        <span className="inline-flex shrink-0 items-center rounded-full bg-orange-50 px-1.5 py-0.5 text-xs font-medium text-orange-700 inset-ring inset-ring-orange-600/20 dark:bg-orange-500/10 dark:text-orange-400 dark:inset-ring-orange-500/10">
-                                          BYE: {byeWeek}
-                                        </span>
-                                      )
-                                    }
-                                    return null
-                                  })()}
-                                </div>
-                              </div>
+                    <div className="space-y-4">
+                      {positionOrder.map(position => {
+                        const positionPlayers = allRosterPlayerIds
+                          .filter(playerId => {
+                            const player = leagueData?.players[playerId]
+                            return player?.position === position
+                          })
+                          .sort((a, b) => {
+                            const valA = dynastyValues[a]?.dynastyValue ?? -Infinity
+                            const valB = dynastyValues[b]?.dynastyValue ?? -Infinity
+                            return valB - valA
+                          })
+
+                        if (positionPlayers.length === 0) return null
+
+                        return (
+                          <div key={position}>
+                            <div className="flex items-center gap-2 mb-4">
+                              <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                              <h4 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
+                                {position}
+                              </h4>
                             </div>
-                            <div>
-                              {/* Row 1: Value, Age */}
-                              <div className="-mt-px flex divide-x divide-gray-200 dark:divide-white/10">
-                                <div className="flex w-0 flex-1">
-                                  <div className="relative -mr-px inline-flex w-0 flex-1 items-center justify-center gap-x-2 rounded-bl-lg border border-transparent py-2 text-xs font-medium text-gray-900 dark:text-white">
-                                    <span className="text-xs text-gray-500 dark:text-gray-400">Value</span>
-                                                                          <span className="text-xs font-medium text-gray-900 dark:text-white">
-                                        {(() => {
-                                          if (dynastyValuesLoading) {
-                                            return '...';
-                                          }
-                                          const dynastyValue = dynastyValues[playerId];
-                                          if (dynastyValue?.dynastyValue !== null && dynastyValue?.dynastyValue !== undefined) {
-                                            return dynastyValue.dynastyValue.toFixed(1);
-                                          }
-                                          return 'N/A';
-                                        })()}
-                                      </span>
-                                  </div>
-                                </div>
-                                <div className="-ml-px flex w-0 flex-1">
-                                  <div className="relative inline-flex w-0 flex-1 items-center justify-center gap-x-2 rounded-br-lg border border-transparent py-2 text-xs font-medium text-gray-900 dark:text-white">
-                                    <span className="text-xs text-gray-500 dark:text-gray-400">Age</span>
-                                    <span className="text-xs font-medium text-gray-900 dark:text-white">
+                            <ul role="list" className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 sm:gap-4">
+                              {positionPlayers.map((playerId, index) => (
+                                <li
+                                  key={`${playerId}-${index}`}
+                                  className="col-span-1 divide-y divide-gray-200 rounded-lg bg-white shadow-sm dark:divide-white/10 dark:bg-gray-800/50 dark:shadow-none dark:outline dark:-outline-offset-1 dark:outline-white/10"
+                                >
+                                  <div className="flex w-full items-center space-x-3 p-4">
+                                    <div className="size-10 shrink-0 rounded-full bg-white dark:bg-white flex items-center justify-center outline -outline-offset-1 outline-black/5 dark:outline-white/10 overflow-hidden">
                                       {(() => {
                                         const player = leagueData?.players[playerId]
-                                        return player?.age || 'N/A'
-                                      })()}
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    {/* Bench Section */}
-                    <div>
-                      <div className="flex items-center gap-2 mb-4">
-                        <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
-                        <h4 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
-                          Bench ({Array.isArray(myTeam?.reserve) ? myTeam.reserve.length : 0})
-                        </h4>
-                      </div>
-                      <ul role="list" className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 sm:gap-4">
-                        {(Array.isArray(myTeam?.reserve) ? [...new Set(myTeam.reserve)] : []).map((playerId, index) => (
-                          <li
-                            key={`${playerId}-${index}`}
-                            className="col-span-1 divide-y divide-gray-200 rounded-lg bg-white shadow-sm dark:divide-white/10 dark:bg-gray-800/50 dark:shadow-none dark:outline dark:-outline-offset-1 dark:outline-white/10"
-                          >
-                            <div className="flex w-full items-center space-x-3 p-4">
-                              <div className="size-10 shrink-0 rounded-full bg-white dark:bg-white flex items-center justify-center outline -outline-offset-1 outline-black/5 dark:outline-white/10 overflow-hidden">
-                                {(() => {
-                                  const player = leagueData?.players[playerId]
-                                  if (player?.search_rank) {
-                                    return (
-                                      <Image
-                                        src={`https://sleepercdn.com/content/nfl/players/thumb/${playerId}.jpg`}
-                                        alt={getPlayerName(playerId)}
-                                        className="w-full h-full object-cover"
-                                        width={40}
-                                        height={40}
-                                      />
-                                    )
-                                  }
-                                  return null
-                                })()}
-                                <span className="fallback-text text-sm font-bold text-gray-700 dark:text-gray-300 hidden">
-                                  {getPlayerPosition(playerId)}
-                                </span>
-                              </div>
-                              <div className="flex-1 truncate">
-                                <div className="flex items-center space-x-3">
-                                                                     <h3 className="truncate text-base font-medium text-gray-900 dark:text-white">{getPlayerName(playerId)}</h3>
-                                   <span className="inline-flex shrink-0 items-center rounded-full bg-gray-50 px-2 py-1 text-sm font-medium text-gray-700 inset-ring inset-ring-gray-600/20 dark:bg-gray-500/10 dark:text-gray-400 dark:inset-ring-gray-500/10">
-                                     {getPlayerPosition(playerId)}
-                                   </span>
-                                   <span className="inline-flex shrink-0 items-center rounded-full bg-gray-50 px-2 py-1 text-sm font-medium text-gray-700 inset-ring inset-ring-gray-600/20 dark:bg-gray-500/10 dark:text-gray-400 dark:inset-ring-gray-500/10">
-                                     {getPlayerTeam(playerId)}
-                                  </span>
-                                  {(() => {
-                                    const byeWeek = getPlayerByeWeek(playerId)
-                                    if (byeWeek !== null) {
-                                      return (
-                                        <span className="inline-flex shrink-0 items-center rounded-full bg-orange-50 px-1.5 py-0.5 text-xs font-medium text-orange-700 inset-ring inset-ring-orange-600/20 dark:bg-orange-500/10 dark:text-orange-400 dark:inset-ring-orange-500/10">
-                                          BYE: {byeWeek}
-                                        </span>
-                                      )
-                                    }
-                                    return null
-                                  })()}
-                                </div>
-                              </div>
-                            </div>
-                            <div>
-                              {/* Row 1: Value, Age */}
-                              <div className="-mt-px flex divide-x divide-gray-200 dark:divide-white/10">
-                                <div className="flex w-0 flex-1">
-                                  <div className="relative -mr-px inline-flex w-0 flex-1 items-center justify-center gap-x-2 rounded-bl-lg border border-transparent py-2 text-xs font-medium text-gray-900 dark:text-white">
-                                    <span className="text-xs text-gray-500 dark:text-gray-400">Value</span>
-                                    <span className="text-xs font-medium text-gray-900 dark:text-white">
-                                      {(() => {
-                                        const dynastyValue = dynastyValues[playerId];
-                                        if (dynastyValue?.dynastyValue !== null && dynastyValue?.dynastyValue !== undefined) {
-                                          return dynastyValue.dynastyValue.toFixed(1);
+                                        if (player?.search_rank) {
+                                          return (
+                                            <Image
+                                              src={`https://sleepercdn.com/content/nfl/players/thumb/${playerId}.jpg`}
+                                              alt={getPlayerName(playerId)}
+                                              className="w-full h-full object-cover"
+                                              width={40}
+                                              height={40}
+                                            />
+                                          )
                                         }
-                                        return 'N/A';
+                                        return null
                                       })()}
-                                    </span>
-                                  </div>
-                                </div>
-                                <div className="-ml-px flex w-0 flex-1">
-                                  <div className="relative inline-flex w-0 flex-1 items-center justify-center gap-x-2 rounded-br-lg border border-transparent py-2 text-xs font-medium text-gray-900 dark:text-white">
-                                    <span className="text-xs text-gray-500 dark:text-gray-400">Age</span>
-                                    <span className="text-xs font-medium text-gray-900 dark:text-white">
-                                      {(() => {
-                                        const player = leagueData?.players[playerId]
-                                        return player?.age || 'N/A'
-                                      })()}
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    {/* Taxi Squad Section */}
-                    {Array.isArray(myTeam?.taxi) && myTeam.taxi.length > 0 && (
-                      <div>
-                        <div className="flex items-center gap-2 mb-4">
-                          <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                          <h4 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
-                            Taxi Squad ({myTeam.taxi.length})
-                          </h4>
-                        </div>
-                        <ul role="list" className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 sm:gap-4">
-                          {myTeam.taxi.map((playerId) => (
-                            <li
-                              key={playerId}
-                              className="col-span-1 divide-y divide-gray-200 rounded-lg bg-white shadow-sm dark:divide-white/10 dark:bg-gray-800/50 dark:shadow-none dark:outline dark:-outline-offset-1 dark:outline-white/10"
-                            >
-                              <div className="flex w-full items-center space-x-3 p-4">
-                                <div className="size-10 shrink-0 rounded-full bg-white dark:bg-white flex items-center justify-center outline -outline-offset-1 outline-black/5 dark:outline-white/10 overflow-hidden">
-                                  {(() => {
-                                    const player = leagueData?.players[playerId]
-                                                                      if (player?.search_rank) {
-                                    return (
-                                      <Image
-                                        src={`https://sleepercdn.com/content/nfl/players/thumb/${playerId}.jpg`}
-                                        alt={getPlayerName(playerId)}
-                                        className="w-full h-full object-cover"
-                                        width={40}
-                                        height={40}
-                                      />
-                                    )
-                                  }
-                                    return null
-                                  })()}
-                                  <span className="fallback-text text-sm font-bold text-yellow-700 dark:text-yellow-300 hidden">
-                                    {getPlayerPosition(playerId)}
-                                  </span>
-                                </div>
-                                <div className="flex-1 truncate">
-                                  <div className="flex items-center space-x-3">
-                                                                       <h3 className="truncate text-base font-medium text-gray-900 dark:text-white">{getPlayerName(playerId)}</h3>
-                                   <span className="inline-flex shrink-0 items-center rounded-full bg-yellow-50 px-2 py-1 text-sm font-medium text-yellow-700 inset-ring inset-ring-yellow-600/20 dark:bg-yellow-500/10 dark:text-yellow-400 dark:inset-ring-yellow-500/10">
-                                     {getPlayerPosition(playerId)}
-                                   </span>
-                                   <span className="inline-flex shrink-0 items-center rounded-full bg-gray-50 px-2 py-1 text-sm font-medium text-gray-700 inset-ring inset-ring-gray-600/20 dark:bg-gray-500/10 dark:text-gray-400 dark:inset-ring-gray-500/10">
-                                     {getPlayerTeam(playerId)}
-                                    </span>
-                                    {(() => {
-                                      const byeWeek = getPlayerByeWeek(playerId)
-                                      if (byeWeek !== null) {
-                                        return (
-                                          <span className="inline-flex shrink-0 items-center rounded-full bg-orange-50 px-1.5 py-0.5 text-xs font-medium text-orange-700 inset-ring inset-ring-orange-600/20 dark:bg-orange-500/10 dark:text-orange-400 dark:inset-ring-orange-500/10">
-                                            BYE: {byeWeek}
-                                          </span>
-                                        )
-                                      }
-                                      return null
-                                    })()}
-                                  </div>
-                                </div>
-                              </div>
-                              <div>
-                                {/* Row 1: Value, Age */}
-                                <div className="-mt-px flex divide-x divide-gray-200 dark:divide-white/10">
-                                  <div className="flex w-0 flex-1">
-                                    <div className="relative -mr-px inline-flex w-0 flex-1 items-center justify-center gap-x-2 rounded-bl-lg border border-transparent py-2 text-xs font-medium text-gray-900 dark:text-white">
-                                      <span className="text-xs text-gray-500 dark:text-gray-400">Value</span>
-                                      <span className="text-xs font-medium text-gray-900 dark:text-white">
+                                      <span className="fallback-text text-sm font-bold text-blue-700 dark:text-blue-300 hidden">
+                                        {getPlayerPosition(playerId)}
+                                      </span>
+                                    </div>
+                                    <div className="flex-1 truncate">
+                                      <div className="flex items-center space-x-3">
+                                        <h3 className="truncate text-base font-medium text-gray-900 dark:text-white">
+                                          {getPlayerName(playerId)}
+                                        </h3>
+                                        <span className="inline-flex shrink-0 items-center rounded-full bg-blue-50 px-2 py-1 text-sm font-medium text-blue-700 inset-ring inset-ring-blue-600/20 dark:bg-blue-500/10 dark:text-blue-400 dark:inset-ring-blue-500/10">
+                                          {getPlayerPosition(playerId)}
+                                        </span>
+                                        <span className="inline-flex shrink-0 items-center rounded-full bg-gray-50 px-2 py-1 text-sm font-medium text-gray-700 inset-ring inset-ring-gray-600/20 dark:bg-gray-500/10 dark:text-gray-400 dark:inset-ring-gray-500/10">
+                                          {getPlayerTeam(playerId)}
+                                        </span>
                                         {(() => {
-                                          const dynastyValue = dynastyValues[playerId];
-                                          if (dynastyValue?.dynastyValue !== null && dynastyValue?.dynastyValue !== undefined) {
-                                            return dynastyValue.dynastyValue.toFixed(1);
+                                          const byeWeek = getPlayerByeWeek(playerId)
+                                          if (byeWeek !== null) {
+                                            return (
+                                              <span className="inline-flex shrink-0 items-center rounded-full bg-orange-50 px-1.5 py-0.5 text-xs font-medium text-orange-700 inset-ring inset-ring-orange-600/20 dark:bg-orange-500/10 dark:text-orange-400 dark:inset-ring-orange-500/10">
+                                                BYE: {byeWeek}
+                                              </span>
+                                            )
                                           }
-                                          return 'N/A';
+                                          return null
                                         })()}
-                                      </span>
+                                      </div>
                                     </div>
                                   </div>
-                                  <div className="-ml-px flex w-0 flex-1">
-                                    <div className="relative inline-flex w-0 flex-1 items-center justify-center gap-x-2 rounded-br-lg border border-transparent py-2 text-xs font-medium text-gray-900 dark:text-white">
-                                      <span className="text-xs text-gray-500 dark:text-gray-400">Age</span>
-                                      <span className="text-xs font-medium text-gray-900 dark:text-white">
-                                        {(() => {
-                                          const player = leagueData?.players[playerId]
-                                          return player?.age || 'N/A'
-                                        })()}
-                                      </span>
+                                  <div>
+                                    {/* Row 1: Value, Age */}
+                                    <div className="-mt-px flex divide-x divide-gray-200 dark:divide-white/10">
+                                      <div className="flex w-0 flex-1">
+                                        <div className="relative -mr-px inline-flex w-0 flex-1 items-center justify-center gap-x-2 rounded-bl-lg border border-transparent py-2 text-xs font-medium text-gray-900 dark:text-white">
+                                          <span className="text-xs text-gray-500 dark:text-gray-400">Value</span>
+                                          <span className="text-xs font-medium text-gray-900 dark:text-white">
+                                            {(() => {
+                                              if (dynastyValuesLoading) {
+                                                return '...'
+                                              }
+                                              const dynastyValue = dynastyValues[playerId]
+                                              if (dynastyValue?.dynastyValue !== null && dynastyValue?.dynastyValue !== undefined) {
+                                                return dynastyValue.dynastyValue.toFixed(1)
+                                              }
+                                              return 'N/A'
+                                            })()}
+                                          </span>
+                                        </div>
+                                      </div>
+                                      <div className="-ml-px flex w-0 flex-1">
+                                        <div className="relative inline-flex w-0 flex-1 items-center justify-center gap-x-2 rounded-br-lg border border-transparent py-2 text-xs font-medium text-gray-900 dark:text-white">
+                                          <span className="text-xs text-gray-500 dark:text-gray-400">Age</span>
+                                          <span className="text-xs font-medium text-gray-900 dark:text-white">
+                                            {(() => {
+                                              const player = leagueData?.players[playerId]
+                                              return player?.age || 'N/A'
+                                            })()}
+                                          </span>
+                                        </div>
+                                      </div>
                                     </div>
                                   </div>
-                                </div>
-                              </div>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </div>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )
+                      })}
+                    </div>
 
                   {/* Empty State */}
-                  {(!myTeam || (Array.isArray(myTeam.starters) ? myTeam.starters.length : 0) === 0 && (Array.isArray(myTeam.reserve) ? myTeam.reserve.length : 0) === 0 && (Array.isArray(myTeam.taxi) ? myTeam.taxi.length : 0) === 0) && (
+                    {(!myTeam || allRosterPlayerIds.length === 0) && (
                     <div className="text-center py-8 sm:py-12">
                       <div className="text-gray-400 dark:text-gray-500 text-4xl sm:text-6xl mb-4">🏈</div>
                       <p className="text-gray-500 dark:text-gray-400 text-base sm:text-lg">No players on your roster yet</p>
@@ -814,15 +654,13 @@ export default function LeaguePage() {
                 <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 sm:p-6 mt-6">
                   <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-4">Position Breakdown</h3>
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
-                    {['QB', 'RB', 'WR', 'TE', 'K', 'DEF'].map(position => {
-                      const positionPlayers = myTeam ? [
-                        ...(Array.isArray(myTeam.starters) ? myTeam.starters : []),
-                        ...(Array.isArray(myTeam.reserve) ? myTeam.reserve : []),
-                        ...(Array.isArray(myTeam.taxi) ? myTeam.taxi : [])
-                      ].filter(playerId => {
-                        const player = leagueData?.players[playerId]
-                        return player?.position === position
-                      }) : []
+                    {positionOrder.map(position => {
+                      const positionPlayers = myTeam
+                        ? allRosterPlayerIds.filter(playerId => {
+                            const player = leagueData?.players[playerId]
+                            return player?.position === position
+                          })
+                        : []
                       
                       return (
                         <div key={position} className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 rounded-lg p-3 sm:p-4 border border-gray-200 dark:border-gray-600">
