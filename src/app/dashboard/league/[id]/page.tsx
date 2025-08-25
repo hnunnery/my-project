@@ -367,9 +367,9 @@ export default function LeaguePage() {
 
   const PlayerCard = ({ playerId }: { playerId: string }) => (
     <li
-      className="col-span-1 divide-y divide-gray-200 rounded-lg bg-white shadow-sm dark:divide-white/10 dark:bg-gray-800/50 dark:shadow-none dark:outline dark:-outline-offset-1 dark:outline-white/10"
+      className="col-span-1 h-full divide-y divide-gray-200 rounded-lg bg-white shadow-sm dark:divide-white/10 dark:bg-gray-800/50 dark:shadow-none dark:outline dark:-outline-offset-1 dark:outline-white/10 flex flex-col"
     >
-      <div className="flex w-full items-center space-x-3 p-4">
+      <div className="flex w-full items-center space-x-3 p-4 flex-1">
         <div className="size-10 shrink-0 rounded-full bg-white dark:bg-white flex items-center justify-center outline -outline-offset-1 outline-black/5 dark:outline-white/10 overflow-hidden">
           {(() => {
             const player = leagueData?.players[playerId]
@@ -390,32 +390,32 @@ export default function LeaguePage() {
             {getPlayerPosition(playerId)}
           </span>
         </div>
-        <div className="flex-1 truncate">
-          <div className="flex items-center space-x-3">
-            <Link href={`/player/${playerId}`} className="truncate text-base font-medium text-gray-900 dark:text-white">
-              {getPlayerName(playerId)}
-            </Link>
-            <span className="inline-flex shrink-0 items-center rounded-full bg-gray-50 px-2 py-1 text-sm font-medium text-gray-700 inset-ring inset-ring-gray-600/20 dark:bg-gray-500/10 dark:text-gray-400 dark:inset-ring-gray-500/10">
-              {getPlayerPosition(playerId)}
-            </span>
-            <span className="inline-flex shrink-0 items-center rounded-full bg-gray-50 px-2 py-1 text-sm font-medium text-gray-700 inset-ring inset-ring-gray-600/20 dark:bg-gray-500/10 dark:text-gray-400 dark:inset-ring-gray-500/10">
-              {getPlayerTeam(playerId)}
-            </span>
-            {(() => {
-              const byeWeek = getPlayerByeWeek(playerId)
-              if (byeWeek !== null) {
-                return (
-                  <span className="inline-flex shrink-0 items-center rounded-full bg-orange-50 px-1.5 py-0.5 text-xs font-medium text-orange-700 inset-ring inset-ring-orange-600/20 dark:bg-orange-500/10 dark:text-orange-400 dark:inset-ring-orange-500/10">
-                    BYE: {byeWeek}
-                  </span>
-                )
-              }
-              return null
-            })()}
-          </div>
-        </div>
+                 <div className="flex-1 min-w-0">
+           <div className="flex items-center space-x-3">
+             <Link href={`/player/${playerId}`} className="truncate text-base font-medium text-gray-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400">
+               {getPlayerName(playerId)}
+             </Link>
+             <span className="inline-flex shrink-0 items-center rounded-full bg-gray-50 px-2 py-1 text-sm font-medium text-gray-700 inset-ring inset-ring-gray-600/20 dark:bg-gray-500/10 dark:text-gray-400 dark:inset-ring-gray-500/10">
+               {getPlayerPosition(playerId)}
+             </span>
+             <span className="inline-flex shrink-0 items-center rounded-full bg-gray-50 px-2 py-1 text-sm font-medium text-gray-700 inset-ring inset-ring-gray-600/20 dark:bg-gray-500/10 dark:text-gray-400 dark:inset-ring-gray-500/10">
+               {getPlayerTeam(playerId)}
+             </span>
+             {(() => {
+               const byeWeek = getPlayerByeWeek(playerId)
+               if (byeWeek !== null) {
+                 return (
+                   <span className="inline-flex shrink-0 items-center rounded-full bg-orange-50 px-1.5 py-0.5 text-xs font-medium text-orange-700 inset-ring inset-ring-orange-600/20 dark:bg-orange-500/10 dark:text-orange-400 dark:inset-ring-orange-500/10">
+                     BYE: {byeWeek}
+                   </span>
+                 )
+               }
+               return null
+             })()}
+           </div>
+         </div>
       </div>
-      <div>
+      <div className="mt-auto">
         <div className="-mt-px flex divide-x divide-gray-200 dark:divide-white/10">
           <div className="flex w-0 flex-1">
             <div className="relative -mr-px inline-flex w-0 flex-1 items-center justify-center gap-x-2 rounded-bl-lg border border-transparent py-2 text-xs font-medium text-gray-900 dark:text-white">
@@ -650,10 +650,10 @@ export default function LeaguePage() {
                   <div className="space-y-4">
                     {myTeam && groupPlayersByPosition(getAllRosterPlayerIds(myTeam)).map(group => (
                       <div key={group.label}>
-                        <h4 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                          {group.label}
-                        </h4>
-                        <ul role="list" className="flex flex-col gap-3 md:flex-row md:flex-wrap md:gap-4">
+                                                 <h4 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                           {group.label}
+                         </h4>
+                         <ul role="list" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                           {group.players.map(playerId => (
                             <PlayerCard key={playerId} playerId={playerId} />
                           ))}
@@ -831,10 +831,10 @@ export default function LeaguePage() {
                       </div>
                       {groupPlayersByPosition(getAllRosterPlayerIds(roster)).map(group => (
                         <div key={group.label} className="mb-4">
-                          <h4 className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            {group.label} ({group.players.length})
-                          </h4>
-                          <ul role="list" className="flex flex-col gap-3 md:flex-row md:flex-wrap md:gap-4">
+                                                     <h4 className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                             {group.label} ({group.players.length})
+                           </h4>
+                           <ul role="list" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                             {group.players.map(playerId => (
                               <PlayerCard key={playerId} playerId={playerId} />
                             ))}
