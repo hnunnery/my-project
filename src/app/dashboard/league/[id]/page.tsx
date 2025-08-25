@@ -844,65 +844,96 @@ export default function LeaguePage() {
            )}
 
           {activeTab === 'rosters' && (
-            <div className="space-y-4 sm:space-y-6">
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Team Rosters</h2>
-               
-                             <div className="bg-white dark:bg-gray-800 rounded-lg p-3 sm:p-4 shadow-sm">
-                 <div className="space-y-3">
-                   <div>
-                     <label htmlFor="team-select" className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                       Select Team
-                     </label>
-                     <select
-                       id="team-select"
-                       value={searchTerm}
-                       onChange={(e) => setSearchTerm(e.target.value)}
-                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white text-sm"
-                     >
-                       <option value="">All Teams</option>
-                       {leagueData.rosters.map((roster) => {
-                         const owner = getUserByOwnerId(roster.owner_id)
-                         const teamName = roster.metadata?.team_name || owner?.display_name || owner?.username || 'Unknown Team'
-                         return (
-                           <option key={roster.roster_id} value={teamName}>
-                             {teamName}
-                           </option>
-                         )
-                       })}
-                     </select>
-                   </div>
-                   
-                   <div>
-                     <label htmlFor="search" className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                       Search Teams
-                     </label>
-                     <input
-                       type="text"
-                       id="search"
-                       value={searchTerm}
-                       onChange={(e) => setSearchTerm(e.target.value)}
-                       placeholder="Search by team name or owner..."
-                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white text-sm"
-                     />
-                   </div>
-                 </div>
-                  
-                 <div className="mt-3 flex items-center justify-between text-xs sm:text-sm">
-                   <span className="text-gray-500 dark:text-gray-400">
-                     Showing {filteredRosters.length} of {leagueData.rosters.length} teams
-                   </span>
-                   {searchTerm && (
-                     <button
-                       onClick={() => setSearchTerm('')}
-                       className="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 px-2 py-1 rounded transition-colors duration-200"
-                     >
-                       Clear Filters
-                     </button>
-                   )}
-                 </div>
-                 
-
-               </div>
+            <div className="space-y-3 sm:space-y-4">
+              <style jsx>{`
+                #team-select option {
+                  padding: 8px 12px;
+                  margin: 2px 0;
+                  border-radius: 6px;
+                  transition: all 0.2s ease;
+                }
+                #team-select option:hover {
+                  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+                }
+                #team-select option:checked {
+                  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+                  color: white;
+                  font-weight: 500;
+                }
+                #team-select option:focus {
+                  outline: none;
+                  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+                }
+                @media (prefers-color-scheme: dark) {
+                  #team-select option {
+                    background: #374151;
+                    color: #f9fafb;
+                  }
+                  #team-select option:hover {
+                    background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+                  }
+                  #team-select option:checked {
+                    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+                    color: white;
+                  }
+                }
+              `}</style>
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-3 sm:p-4 border border-gray-100 dark:border-gray-700">
+                <div className="relative">
+                  <label htmlFor="team-select" className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Select Team
+                  </label>
+                  <div className="relative">
+                    <select
+                      id="team-select"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full px-3 py-2.5 pl-9 pr-8 border border-gray-200 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white text-sm bg-gradient-to-r from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 transition-all duration-200 hover:shadow-md appearance-none [&>option]:py-2 [&>option]:px-3 [&>option]:text-sm [&>option]:bg-white [&>option]:dark:bg-gray-700 [&>option]:hover:bg-indigo-50 [&>option]:dark:hover:bg-indigo-900/20 [&>option]:cursor-pointer"
+                    >
+                      <option value="">All Teams</option>
+                      {leagueData.rosters
+                        .map((roster) => {
+                          const owner = getUserByOwnerId(roster.owner_id)
+                          const teamName = roster.metadata?.team_name || owner?.display_name || owner?.username || 'Unknown Team'
+                          return { roster, teamName }
+                        })
+                        .sort((a, b) => a.teamName.localeCompare(b.teamName))
+                        .map(({ roster, teamName }) => (
+                          <option key={roster.roster_id} value={teamName}>
+                            {teamName}
+                          </option>
+                        ))}
+                    </select>
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <span className="text-gray-400 dark:text-gray-500 text-sm">🏆</span>
+                    </div>
+                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                      <svg className="h-4 w-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      {filteredRosters.length} of {leagueData.rosters.length} teams
+                    </span>
+                    {searchTerm && (
+                      <button
+                        onClick={() => setSearchTerm('')}
+                        className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-md hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors duration-200"
+                      >
+                        <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
                
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                 {filteredRosters.map((roster) => {

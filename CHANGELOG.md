@@ -108,6 +108,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **✅ Mobile Responsiveness**: Dynasty values page optimized for mobile devices
 - **✅ Player Card Integration**: Dynasty values now displayed in all player cards across the app
 
+### UI Improvements
+- **✅ Roster Selection Enhanced**: Improved dropdown UI with modern styling, icons, and better visual hierarchy
+- **✅ Search Removed**: Simplified rosters page by removing search functionality, keeping only team selection dropdown
+- **✅ Alphabetical Ordering**: Team dropdown now sorted A-Z for better user experience
+- **✅ Modern Design**: Added gradient backgrounds, better shadows, rounded corners, and smooth transitions
+- **✅ Mobile-First Optimization**: Tightened UI spacing, removed redundant text, optimized component layout
+- **✅ Duplicate Arrow Fix**: Resolved duplicate dropdown arrow icons with proper CSS styling
+- **✅ Dropdown Styling Enhanced**: Added custom CSS for expanded dropdown with hover effects, gradients, and better visual feedback
+- **✅ Icon Cleanup**: Removed football emoji from "All Teams" option for cleaner appearance
+
 ## [0.1.0] - 2025-01-XX
 
 ### Added
