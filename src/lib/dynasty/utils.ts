@@ -1,6 +1,4 @@
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from "../prisma";
 
 export async function getDynastyValues(playerIds: string[]) {
   if (playerIds.length === 0) return new Map();
