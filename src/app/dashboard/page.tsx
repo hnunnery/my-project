@@ -293,7 +293,7 @@ export default function Dashboard() {
         <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
             <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
-              Fantasy Football Dashboard
+              Dynasty Dashboard
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-2">
               Manage your Sleeper fantasy football leagues
