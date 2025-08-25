@@ -1,5 +1,7 @@
 # ETL Fix Summary: Player Selection Logic
 
+> **Update (2025-08-25)**: Synthetic ADP generation has been replaced with live FantasyFootballCalculator dynasty ADP using the DynastyProcess player ID crosswalk.
+
 ## 🚨 Problem Identified
 
 The ETL was processing **ALL 11,161 players** in the database instead of only the **~7,155 fantasy-relevant players** with valid ADP data.

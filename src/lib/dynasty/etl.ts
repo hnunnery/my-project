@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
-import { fetchSleeperPlayers, fetchSleeperADP, SleeperPlayer } from "../sleeper";
+import { fetchSleeperPlayers, SleeperPlayer } from "../sleeper";
+import { fetchADP } from "../adp";
 import { ageMultiplier } from "./ageCurves";
 import { composite } from "./formula";
 import { logistic } from "./normalize";
@@ -25,7 +26,7 @@ export async function runDynastyETL(asOf = new Date('2025-01-01')) {
   try {
     const [playersJson, adpRows] = await Promise.all([
       fetchSleeperPlayers(),
-      fetchSleeperADP(),
+      fetchADP(),
     ]);
     
     console.log(`Fetched ${Object.keys(playersJson).length} total players and ${adpRows.length} ADP entries`);
@@ -93,20 +94,20 @@ export async function runDynastyETL(asOf = new Date('2025-01-01')) {
   console.log(`Upserting ${adpRows.length} ADP snapshots...`);
   await prisma.$transaction(
     adpRows.map((r: { player_id: string; adp: number; position?: string }) => prisma.snapshot.upsert({
-      where: { 
-        asOfDate_source_playerId: { 
-          asOfDate: asOf, 
-          source: "sleeper_adp", 
-          playerId: r.player_id 
-        } 
+      where: {
+        asOfDate_source_playerId: {
+          asOfDate: asOf,
+          source: "ffc_adp",
+          playerId: r.player_id
+        }
       },
       update: { rawValue: r.adp, meta: r },
-      create: { 
-        asOfDate: asOf, 
-        source: "sleeper_adp", 
-        playerId: r.player_id, 
-        rawValue: r.adp, 
-        meta: r 
+      create: {
+        asOfDate: asOf,
+        source: "ffc_adp",
+        playerId: r.player_id,
+        rawValue: r.adp,
+        meta: r
       },
     }))
   );

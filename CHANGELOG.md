@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Prevents crashes when Sleeper API returns unexpected data
 
 ### Added
+- **FantasyFootballCalculator ADP**: Integrated live dynasty ADP via FFC API and DynastyProcess ID crosswalk
 - **Dynasty Assistant Integration**: Moved AI assistant chatbot to the league page chat tab
 - **Debug Sections**: Added comprehensive debugging for roster data to identify bench player display issues
 - **Bench Player Calculation**: Implemented fallback logic to calculate bench players when Sleeper API reserve field is empty
