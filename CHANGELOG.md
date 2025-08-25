@@ -67,6 +67,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Removed standalone `/dashboard/assistant` page
   - AI assistant now integrated into league page chat tab for better context
   - Dynasty values accessible through AI assistant within league context
+- **Chat Component Improvements**: Made dynasty assistant more sleek and mobile-first
+  - Removed bulky header and borders for cleaner design
+  - Reduced height from 600px to 500px for better mobile experience
+  - Simplified message bubbles with rounded-2xl design
+  - Removed unnecessary "Press Enter to send" text
+  - Optimized spacing and typography for mobile devices
 
 ### Fixed
 - **Team Matching**: Resolved issue where user's team wasn't being correctly identified

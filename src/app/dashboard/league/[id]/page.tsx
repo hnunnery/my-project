@@ -1128,8 +1128,6 @@ export default function LeaguePage() {
 
           {activeTab === 'chat' && (
             <div className="space-y-4 sm:space-y-6">
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Chat Assistant</h2>
-              
               <DynastyAssistant leagueData={leagueData} dynastyValues={dynastyValues} />
             </div>
           )}
