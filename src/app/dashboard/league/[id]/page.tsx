@@ -506,58 +506,8 @@ export default function LeaguePage() {
                   </div>
                 </div>
 
-                {/* Debug MyTeam Info - Remove after fixing */}
-                {myTeam && (
-                  <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                    <h4 className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">🔍 Debug MyTeam</h4>
-                    <div className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
-                      <div>Starters: {Array.isArray(myTeam.starters) ? myTeam.starters.length : 0}</div>
-                      <div>Bench: {Array.isArray(myTeam.reserve) ? myTeam.reserve.length : 0}</div>
-                      {Array.isArray(myTeam.reserve) && myTeam.reserve.length > 0 && (
-                        <div>Bench IDs: {myTeam.reserve.slice(0, 5).join(', ')}</div>
-                      )}
-                      {!Array.isArray(myTeam.reserve) && (
-                        <div className="text-red-600">⚠️ Reserve is not an array: {typeof myTeam.reserve}</div>
-                      )}
-                    </div>
-                  </div>
-                )}
-                
-                {/* Raw Roster Data Debug - Remove after fixing */}
-                <div className="p-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
-                  <h4 className="text-sm font-medium text-gray-800 dark:text-gray-200 mb-2">🔍 Raw Roster Data</h4>
-                  <div className="text-xs text-gray-700 dark:text-gray-300 space-y-1">
-                    <div>MyTeam Type: {myTeam ? typeof myTeam : 'null'}</div>
-                    {myTeam && (
-                      <>
-                        <div>MyTeam Keys: {Object.keys(myTeam).join(', ')}</div>
-                        <div>Starters Type: {typeof myTeam.starters}</div>
-                        <div>Reserve Type: {typeof myTeam.reserve}</div>
-                        <div>Players Type: {typeof myTeam.players}</div>
-                        {myTeam.players && (
-                          <div>Players Count: {Array.isArray(myTeam.players) ? myTeam.players.length : 'Not array'}</div>
-                        )}
-                      </>
-                    )}
-                  </div>
-                </div>
-                 
-                 {/* Processed Roster Debug - Remove after fixing */}
-                 <div className="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-                   <h4 className="text-sm font-medium text-green-800 dark:text-green-200 mb-2">🔧 Processed Roster Data</h4>
-                   <div className="text-xs text-green-700 dark:text-green-300 space-y-1">
-                     <div>Total Rosters: {leagueData.rosters.length}</div>
-                     <div>Rosters with Bench: {leagueData.rosters.filter(r => Array.isArray(r.reserve) && r.reserve.length > 0).length}</div>
-                     {myTeam && (
-                       <>
-                         <div>MyTeam Bench Count: {Array.isArray(myTeam.reserve) ? myTeam.reserve.length : 0}</div>
-                         {Array.isArray(myTeam.reserve) && myTeam.reserve.length > 0 && (
-                           <div>MyTeam Bench IDs: {myTeam.reserve.slice(0, 5).join(', ')}</div>
-                         )}
-                       </>
-                     )}
-                   </div>
-                 </div>
+
+
 
 
                                  {/* Detailed Roster */}
