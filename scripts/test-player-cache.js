@@ -29,7 +29,7 @@ async function testPlayerCache() {
     console.log('\n2️⃣ Testing cache hit...')
     const response2 = await fetch(`${BASE_URL}/api/players`)
     const data2 = await response2.json()
-    
+
     if (data2.success) {
       console.log(`✅ Success! Fetched ${data2.playerCount} players`)
       console.log(`   Cached: ${data2.cached}`)
@@ -38,6 +38,10 @@ async function testPlayerCache() {
       console.log(`❌ Failed: ${data2.error}`)
       return
     }
+
+    if (!data2.cached) throw new Error('Cache not utilized on second fetch')
+    if (data1.lastUpdated !== data2.lastUpdated)
+      throw new Error('Cached data mismatch on second fetch')
     
     // Test 3: Force refresh
     console.log('\n3️⃣ Testing force refresh...')
