@@ -119,6 +119,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **✅ Icon Cleanup**: Removed football emoji from "All Teams" option for cleaner appearance
 - **✅ Header Update**: Changed dashboard page header from "Fantasy Football Dashboard" to "Dynasty Dashboard"
 - **✅ Mobile-First Dashboard**: Tightened spacing, reduced padding, optimized grid gaps, and centered header text on mobile screens
+- **✅ Transparent Cards**: Made all dashboard cards transparent with subtle borders for a cleaner, modern appearance
+- **✅ Radio Button Default Selection**: Replaced "Default" label and "Set Default" button with radio buttons for intuitive account selection
+- **✅ Mobile-Optimized Radio Buttons**: Moved radio buttons to right side, increased size to 24x24px, and enhanced focus states for better mobile touch targets
+- **✅ Button Styling**: Updated edit button to use primary indigo color for better visual hierarchy and consistency
+- **✅ Simplified Account Management**: Removed edit functionality and replaced remove button with clean trash can icon for better UX
+- **✅ Cleaner Section Headers**: Removed football icon and updated "Sleeper Fantasy Football" to "Sleeper Integration" for cleaner appearance
+- **✅ Button Text Update**: Changed "Fetch Leagues" button to "Add Leagues" for better user understanding
+- **✅ Mobile-First Card Layout**: Moved trash icon next to username, removed duplicate @username, tightened spacing, and optimized for mobile screens
+- **✅ Streamlined User Display**: Removed duplicate username, increased text size to text-base, enlarged trash icon to 16x16px, and improved vertical alignment
 
 ## [0.1.0] - 2025-01-XX
 
