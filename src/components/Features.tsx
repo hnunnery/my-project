@@ -41,7 +41,7 @@ export function Features() {
           Everything you need to deploy your app
         </p>
         <p className="mt-6 text-lg/8 text-gray-700 dark:text-gray-300">
-          Quis tellus eget adipiscing convallis sit sit eget aliquet quis. Suspendisse eget egestas a elementum
+          Quis tellus eget adipiscing convallis sit eget aliquet quis. Suspendisse eget egestas a elementum
           pulvinar et feugiat blandit at. In mi viverra elit nunc.
         </p>
       </div>
