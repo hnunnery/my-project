@@ -53,6 +53,7 @@ export default function Dashboard() {
       lastUpdated: number
     }
   }>({})
+  const [showSuccess, setShowSuccess] = useState(false)
 
   // Load saved accounts and stored leagues from localStorage on component mount
   useEffect(() => {
@@ -89,10 +90,10 @@ export default function Dashboard() {
     if (sleeperUsername && storedLeagues[sleeperUsername]) {
       const storedData = storedLeagues[sleeperUsername]
       setSleeperData({ user: storedData.user, leagues: storedData.leagues })
-    } else {
+    } else if (!showSuccess) {
       setSleeperData(null)
     }
-  }, [sleeperUsername, storedLeagues])
+  }, [sleeperUsername, storedLeagues, showSuccess])
 
   // Auto-fetch data for default account if no data exists
   useEffect(() => {
@@ -126,6 +127,14 @@ export default function Dashboard() {
       localStorage.removeItem('sleeperLeagues')
     }
   }, [storedLeagues])
+
+  // Hide success message after it appears
+  useEffect(() => {
+    if (showSuccess) {
+      const timer = setTimeout(() => setShowSuccess(false), 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [showSuccess])
 
   const saveAccount = useCallback((user: SleeperUser | null) => {
     // Guard against null/undefined user
@@ -179,9 +188,17 @@ export default function Dashboard() {
         setDefaultAccount(nextAccount.id)
       }
     }
-    
+
     setSavedAccounts(prev => prev.filter(acc => acc.id !== accountId))
-    
+
+    if (accountToRemove) {
+      setStoredLeagues(prev => {
+        const updated = { ...prev }
+        delete updated[accountToRemove.username]
+        return updated
+      })
+    }
+
     // Clear username if it was the removed account
     if (accountToRemove?.username === sleeperUsername) {
       setSleeperUsername('')
@@ -205,6 +222,7 @@ export default function Dashboard() {
 
     setIsLoadingSleeper(true)
     setSleeperError('')
+    setShowSuccess(false)
     
     try {
       // First get user info
@@ -231,15 +249,18 @@ export default function Dashboard() {
       if (!leaguesResponse.ok) throw new Error('Failed to fetch leagues')
       
       const leagues: SleeperLeague[] = await leaguesResponse.json()
-      
+
       // Store the new data
       const newData = { user, leagues, lastUpdated: Date.now() }
       setStoredLeagues(prev => ({ ...prev, [sleeperUsername]: newData }))
-      
+
       setSleeperData({ user, leagues })
-      
-      // Clear the input to prepare for adding another account
-      setSleeperUsername('')
+
+      if (!forceRefresh) {
+        setShowSuccess(true)
+        // Clear the input to prepare for adding another account
+        setSleeperUsername('')
+      }
     } catch (error) {
       console.error('Error fetching Sleeper data:', error)
       setSleeperError(error instanceof Error ? error.message : 'Failed to fetch data')
@@ -429,6 +450,10 @@ export default function Dashboard() {
                       }
                     }}
                     placeholder="Enter your Sleeper username..."
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck={false}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white"
                   />
                   {sleeperUsername && !sleeperData && isLoadingSleeper && (
@@ -437,20 +462,24 @@ export default function Dashboard() {
                     </div>
                   )}
                 </div>
-                                  {sleeperUsername && !sleeperData && !isLoadingSleeper && (
+                {isLoadingSleeper ? (
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Getting leagues...</p>
+                ) : (
+                  sleeperUsername && !sleeperData && (
                     <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                      Press Enter or click &quot;Fetch Leagues&quot; to load your data
+                      Press Enter or click &quot;Add Leagues&quot; to load your data
                     </p>
-                  )}
+                  )
+                )}
               </div>
-              
+
               <div className="flex items-end gap-2">
                                  <button
                    onClick={() => fetchSleeperData(false)}
                    disabled={isLoadingSleeper || !sleeperUsername.trim()}
                    className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
                  >
-                   {isLoadingSleeper ? 'Loading...' : 'Add Leagues'}
+                   {isLoadingSleeper ? 'Getting leagues...' : 'Add Leagues'}
                  </button>
 
               </div>
@@ -463,7 +492,7 @@ export default function Dashboard() {
             )}
 
             {/* Success Message */}
-            {sleeperData && (
+            {showSuccess && sleeperData && !isLoadingSleeper && (
               <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
                 <div className="flex items-center gap-3">
                   <div className="flex-shrink-0">
