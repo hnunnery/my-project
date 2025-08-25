@@ -45,6 +45,7 @@ export default function Dashboard() {
     leagues: SleeperLeague[]
   } | null>(null)
   const [isLoadingSleeper, setIsLoadingSleeper] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(false)
   const [sleeperError, setSleeperError] = useState('')
   const [storedLeagues, setStoredLeagues] = useState<{
     [username: string]: {
@@ -233,6 +234,7 @@ export default function Dashboard() {
       return
     }
 
+    if (forceRefresh) setIsRefreshing(true)
     setIsLoadingSleeper(true)
     setSleeperError('')
     setShowSuccess(false)
@@ -286,6 +288,7 @@ export default function Dashboard() {
       }
     } finally {
       setIsLoadingSleeper(false)
+      if (forceRefresh) setIsRefreshing(false)
     }
   }, [sleeperUsername, storedLeagues, saveAccount])
 
@@ -367,82 +370,86 @@ export default function Dashboard() {
             </div>
           )}
 
-           {/* Your Leagues Section */}
-           {savedAccounts.length > 0 && (
-             <div className="bg-transparent rounded-lg shadow-lg p-4 mb-4">
-               <div className="flex items-center justify-between mb-3">
-                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                   Your Leagues
-                 </h2>
-                 {(() => {
-                   const selectedAccount = savedAccounts.find(acc => acc.isDefault)
-                   if (!selectedAccount) return null
-                   
-                  const accountData = storedLeagues[normalizeUsername(selectedAccount.username)]
-                   if (!accountData) return null
-                   
-                   return (
-                     <button
-                       onClick={() => fetchSleeperData(true)}
-                       disabled={isLoadingSleeper}
-                       className="p-2 text-gray-600 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors"
-                       title="Refresh leagues data"
-                     >
-                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                       </svg>
-                     </button>
-                   )
-                 })()}
-               </div>
-               
-               {(() => {
-                 const selectedAccount = savedAccounts.find(acc => acc.isDefault)
-                 if (!selectedAccount) return null
-                 
-                 const accountData = storedLeagues[normalizeUsername(selectedAccount.username)]
-                 if (!accountData) {
-                   return (
-                     <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                       <p>No leagues found for {selectedAccount.displayName}</p>
-                       <p className="text-sm mt-1">Add leagues using the form below</p>
-                     </div>
-                   )
-                 }
-                 
-                 if (accountData.leagues.length === 0) {
-                   return (
-                     <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                       <p>No leagues found for {selectedAccount.displayName}</p>
-                       <p className="text-sm mt-1">Add leagues using the form below</p>
-                     </div>
-                   )
-                 }
-                 
-                 return (
-                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                     {accountData.leagues.map((league) => (
-                       <Link
-                         key={league.league_id}
-                         href={`/dashboard/league/${league.league_id}`}
-                         className="block p-4 bg-transparent border-2 border-gray-200 dark:border-gray-600 rounded-lg active:bg-gray-100 dark:active:bg-gray-700 active:scale-95 transition-transform duration-150 cursor-pointer"
-                       >
-                         <h4 className="font-semibold text-gray-900 dark:text-white text-base mb-3 truncate">
-                           {league.name}
-                         </h4>
-                         <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
-                           <span>Season: {league.season}</span>
-                           <span>Teams: {league.settings.num_teams}</span>
-                         </div>
-                       </Link>
-                     ))}
-                   </div>
-                 )
-               })()}
-             </div>
-           )}
+            {/* My Leagues Section */}
+            {savedAccounts.length > 0 && (() => {
+              const selectedAccount = savedAccounts.find(acc => acc.isDefault)
+              if (!selectedAccount) return null
 
-           {/* Sleeper Integration */}
+              const accountData = storedLeagues[normalizeUsername(selectedAccount.username)]
+              const leagueCount = accountData?.leagues.length ?? 0
+
+              return (
+                <div className="bg-transparent rounded-lg shadow-lg p-4 mb-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                      My Leagues ({leagueCount})
+                    </h2>
+                    {accountData && (
+                      <button
+                        onClick={() => fetchSleeperData(true)}
+                        disabled={isLoadingSleeper}
+                        className="p-2 text-gray-600 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors"
+                        title="Refresh leagues data"
+                      >
+                        <svg className={`w-5 h-5 ${isRefreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+
+                  {(() => {
+                    if (isRefreshing) {
+                      const skeletonCount = Math.max(leagueCount, 3)
+                      return (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                          {Array.from({ length: skeletonCount }).map((_, i) => (
+                            <div
+                              key={i}
+                              className="p-4 bg-transparent border-2 border-gray-200 dark:border-gray-600 rounded-lg animate-pulse"
+                            >
+                              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-3"></div>
+                              <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                            </div>
+                          ))}
+                        </div>
+                      )
+                    }
+
+                    if (!accountData || leagueCount === 0) {
+                      return (
+                        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                          <p>No leagues found for {selectedAccount.displayName}</p>
+                          <p className="text-sm mt-1">Add leagues using the form below</p>
+                        </div>
+                      )
+                    }
+
+                    return (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {accountData.leagues.map((league) => (
+                          <Link
+                            key={league.league_id}
+                            href={`/dashboard/league/${league.league_id}`}
+                            className="block p-4 bg-transparent border-2 border-gray-200 dark:border-gray-600 rounded-lg active:bg-gray-100 dark:active:bg-gray-700 active:scale-95 transition-transform duration-150 cursor-pointer"
+                          >
+                            <h4 className="font-semibold text-gray-900 dark:text-white text-base mb-3 truncate">
+                              {league.name}
+                            </h4>
+                            <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                              <span>Season: {league.season}</span>
+                              <span>Teams: {league.settings.num_teams}</span>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    )
+                  })()}
+                </div>
+              )
+            })()}
+
+            {/* Sleeper Integration */}
            <div className="bg-transparent rounded-lg shadow-lg p-4 mb-4">
              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
                Add New Account
