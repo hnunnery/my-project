@@ -70,7 +70,7 @@ interface SleeperPlayer {
     interceptions?: number
     fumbles?: number
   }
-  // Rankings and projections
+  // Rankings
   rank?: number
   rank_position?: number
   rank_ecr?: number

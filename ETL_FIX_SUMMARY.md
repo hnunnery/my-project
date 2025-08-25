@@ -96,7 +96,7 @@ The fix ensures the ETL will:
 - **Coverage**: 1% → 100% of fantasy-relevant players with complete data
 - **Efficiency**: 11,161 → ~6,800 players processed (excludes age-deficient players)
 - **Quality**: 0 failed calculations from data-incomplete players
-- **Data Integrity**: 100% of processed players have market, projection, age, and risk scores
+- **Data Integrity**: 100% of processed players have market and age scores
 - **Performance**: Faster ETL completion with focused processing and no calculation failures
 
 This fix transforms the dynasty fantasy football system from having only 94 players with values to comprehensive coverage of all ~6,800 fantasy-relevant players with complete data, ensuring 100% calculation success rate.

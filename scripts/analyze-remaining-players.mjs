@@ -45,17 +45,15 @@ async function analyzeRemainingPlayers() {
       
       // Get their ValueDaily records to see what's missing
       const remainingValueRecords = await prisma.valueDaily.findMany({
-        where: { 
+        where: {
           playerId: { in: remainingPlayerIds },
           asOfDate: new Date('2025-01-01')
         },
-        select: { 
-          playerId: true, 
-          marketValue: true, 
-          projectionScore: true, 
-          ageScore: true, 
-          riskScore: true,
-          dynastyValue: true 
+        select: {
+          playerId: true,
+          marketValue: true,
+          ageScore: true,
+          dynastyValue: true
         }
       });
       
@@ -67,9 +65,7 @@ async function analyzeRemainingPlayers() {
         console.log(`\n   ${player.name} (${player.pos}, Age: ${player.ageYears || 'N/A'}, Team: ${player.team || 'N/A'})`);
         if (valueRecord) {
           console.log(`     Market: ${valueRecord.marketValue}`);
-          console.log(`     Projection: ${valueRecord.projectionScore}`);
           console.log(`     Age Score: ${valueRecord.ageScore}`);
-          console.log(`     Risk Score: ${valueRecord.riskScore}`);
           console.log(`     Dynasty Value: ${valueRecord.dynastyValue}`);
         } else {
           console.log(`     ❌ No ValueDaily record found!`);
@@ -80,9 +76,7 @@ async function analyzeRemainingPlayers() {
       console.log(`\n🔍 Field Analysis for Remaining Players:`);
       const fieldAnalysis = {
         noMarketValue: 0,
-        noProjectionScore: 0,
         noAgeScore: 0,
-        noRiskScore: 0,
         noValueDailyRecord: 0
       };
       
@@ -93,9 +87,7 @@ async function analyzeRemainingPlayers() {
           fieldAnalysis.noValueDailyRecord++;
         } else {
           if (valueRecord.marketValue === null) fieldAnalysis.noMarketValue++;
-          if (valueRecord.projectionScore === null) fieldAnalysis.noProjectionScore++;
           if (valueRecord.ageScore === null) fieldAnalysis.noAgeScore++;
-          if (valueRecord.riskScore === null) fieldAnalysis.noRiskScore++;
         }
       }
       

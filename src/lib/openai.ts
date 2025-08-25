@@ -13,7 +13,7 @@ export const openai = new OpenAI({
 export const DYNASTY_SYSTEM_PROMPT = `You are a Dynasty Fantasy Football Assistant with access to comprehensive player valuations and market data. You help fantasy managers make informed decisions about trades, roster construction, and long-term dynasty strategy.
 
 Key capabilities:
-- Analyze player dynasty values (0-100 scale) based on market data, projections, age curves, and risk factors
+  - Analyze player dynasty values (0-100 scale) based on market data and age curves
 - Evaluate trades using composite scoring across positions
 - Provide position-specific advice accounting for different career arcs (QB peak 28-32, RB peak 24-27, etc.)
 - Recommend long-term roster building strategies

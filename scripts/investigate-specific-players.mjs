@@ -30,12 +30,10 @@ async function investigateSpecificPlayers() {
           playerId: 'GJ Kinne'
         }
       },
-      select: { 
-        marketValue: true, 
-        projectionScore: true, 
-        ageScore: true, 
-        riskScore: true,
-        dynastyValue: true 
+      select: {
+        marketValue: true,
+        ageScore: true,
+        dynastyValue: true
       }
     });
     console.log("GJ Kinne Dynasty Value:", gjKinneValue);
@@ -66,12 +64,10 @@ async function investigateSpecificPlayers() {
           playerId: 'Ben Tate'
         }
       },
-      select: { 
-        marketValue: true, 
-        projectionScore: true, 
-        ageScore: true, 
-        riskScore: true,
-        dynastyValue: true 
+      select: {
+        marketValue: true,
+        ageScore: true,
+        dynastyValue: true
       }
     });
     console.log("Ben Tate Dynasty Value:", benTateValue);

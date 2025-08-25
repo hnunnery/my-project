@@ -6,7 +6,7 @@ A comprehensive fantasy football dynasty league management application with adva
 
 ### 🔥 Dynasty Values System
 - **Daily ETL Pipeline** - Automated player data collection and processing from Sleeper API
-- **Composite Dynasty Scoring** - Market data + projections + age curves + risk factors (0-100 scale)
+- **Composite Dynasty Scoring** - Market data blended with age curves on a 0-100 scale
 - **Position-Based Normalization** - Fair comparisons across QB, RB, WR, TE, K, DEF
 - **Trend Analysis** - 7-day and 30-day value movement tracking with momentum indicators
 - **Real-Time Rankings** - Live dynasty player valuations updated daily at 06:00 UTC
@@ -102,7 +102,7 @@ curl http://localhost:3000/api/cron/dynasty
 ## 🏈 Dynasty Features Deep Dive
 
 ### Player Valuations
-- **Composite Dynasty Scores** (0-100 scale) combining market, projections, age, and risk
+- **Composite Dynasty Scores** (0-100 scale) combining market data and age curves
 - **Position-Specific Age Curves** accounting for different career arcs
 - **Market Sentiment Analysis** from Sleeper ADP trending data
 - **Trend Indicators** showing 7-day and 30-day value momentum
@@ -110,9 +110,8 @@ curl http://localhost:3000/api/cron/dynasty
 ### Scoring Formula
 ```typescript
 dynastyValue = (
-  marketValue * 0.5 +      // ADP-based market sentiment
-  projectionScore * 0.25 +  // Expected performance
-  ageScore * 0.25          // Age-adjusted value  
+  marketValue * 0.75 +      // ADP-based market sentiment
+  ageScore * 0.25          // Age-adjusted value
 )
 ```
 

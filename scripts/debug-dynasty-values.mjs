@@ -49,24 +49,17 @@ async function debugDynastyValues() {
         // Calculate market value (ADP-based)
         const marketValue = Math.max(0, 100 - ((adp - 1) / (100 - 1)) * 100);
         
-        // Projection score (same as market for now)
-        const projectionScore = marketValue;
-        
         // Age multiplier
         const ageMult = ageMultiplier(player.pos, player.ageYears);
-        const ageScore = Math.min(100, Math.max(0, projectionScore * ageMult));
-        
-        // Risk score
-        const riskScore = 95;
-        
+        const ageScore = Math.round(ageMult * 100);
+
         // Final dynasty value
-        const dynastyValue = composite({ marketValue, projectionScore, ageScore, riskScore });
+        const dynastyValue = composite({ marketValue, ageScore });
 
         console.log(`✅ ${player.name} (${player.pos}, Age: ${player.ageYears || 'N/A'}):`);
         console.log(`   ADP: ${adp} → Market: ${marketValue.toFixed(2)}`);
         console.log(`   Age Mult: ${ageMult.toFixed(3)} → Age Score: ${ageScore.toFixed(2)}`);
         console.log(`   Dynasty Value: ${dynastyValue.toFixed(2)}`);
-        console.log(`   Risk Score: ${riskScore}`);
         console.log("");
 
         validCount++;

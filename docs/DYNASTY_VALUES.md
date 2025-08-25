@@ -13,9 +13,7 @@ The Dynasty Values system was built to solve a critical problem in fantasy footb
 ### The Solution
 A comprehensive scoring system that combines:
 1. **Market sentiment** (what people are actually doing - ADP data)
-2. **Projection-based value** (expected performance)
-3. **Age-adjusted scoring** (position-specific career curves)
-4. **Risk assessment** (injury history, contract situations)
+2. **Age-adjusted scoring** (position-specific career curves)
 
 This creates a single, comparable dynasty value (0-100 scale) for every NFL player, updated daily.
 
@@ -38,16 +36,13 @@ Sleeper API → Raw Data → Normalization → Age Adjustment → Composite Scor
    - Captures player metadata: position, team, age, injury status
 
 2. **Data Transformation**
-   - **Global ADP normalization**: ADP values are normalized across all positions (0-100 scale, inverted since lower ADP = higher value)
+   - **Logistic ADP normalization**: ADP values are normalized across all positions (0-100 scale using a logistic curve so top players approach but do not hit 100)
    - **Age curve application**: Each position has different peak ages and decline rates
-   - **Projection calculation**: Combines market data with expected performance
-   - **Risk scoring**: Currently simplified (95/100), designed for future injury/contract analysis
 
 3. **Composite Scoring Formula**
    ```typescript
    dynastyValue = (
-     marketValue * 0.5 +      // What the market thinks (ADP-based)
-     projectionScore * 0.25 +  // Expected performance
+     marketValue * 0.75 +      // What the market thinks (ADP-based)
      ageScore * 0.25          // Age-adjusted value
    )
    ```
@@ -108,7 +103,6 @@ model ValueDaily {
   asOfDate        DateTime
   playerId        String
   marketValue     Float?   // Normalized market score (0-100)
-  projectionScore Float?   // Expected performance score
   ageScore        Float?   // Age-adjusted score
   dynastyValue    Float?   // Final composite score
   trend7d         Float?   // 7-day trend delta
@@ -329,8 +323,8 @@ npx prisma studio
 ## Technical Debt & Known Limitations
 
 ### Current Limitations
-1. **Risk Score**: Simplified to 95/100, needs injury/contract data
-2. **Projection Source**: Using market-derived projections, not expert consensus
+1. **Risk Score**: Not yet implemented
+2. **Projection Component**: Currently omitted; future versions may integrate expert projections
 3. **Position Eligibility**: Single position only, no multi-position players
 4. **Rookie Integration**: New players may not have sufficient ADP data
 

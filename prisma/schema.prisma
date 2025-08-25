@@ -89,9 +89,7 @@ model ValueDaily {
   asOfDate        DateTime
   playerId        String
   marketValue     Float?  // 0–100 after normalization
-  projectionScore Float?
   ageScore        Float?
-  riskScore       Float?
   dynastyValue    Float?
   trend7d         Float?
   trend30d        Float?

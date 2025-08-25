@@ -45,9 +45,7 @@ async function analyzePositionDistribution() {
         name: value.player.name,
         dynastyValue: value.dynastyValue,
         marketValue: value.marketValue,
-        projectionScore: value.projectionScore,
-        ageScore: value.ageScore,
-        riskScore: value.riskScore
+        ageScore: value.ageScore
       });
     }
 
@@ -55,9 +53,7 @@ async function analyzePositionDistribution() {
     for (const [pos, players] of Object.entries(positionGroups)) {
       const dynastyValues = players.map(p => p.dynastyValue);
       const marketValues = players.map(p => p.marketValue).filter(v => v !== null);
-      const projectionScores = players.map(p => p.projectionScore).filter(v => v !== null);
       const ageScores = players.map(p => p.ageScore).filter(v => v !== null);
-      const riskScores = players.map(p => p.riskScore).filter(v => v !== null);
 
       console.log(`🏈 ${pos} Position (${players.length} players):`);
       console.log(`   Dynasty Values:`);
@@ -71,13 +67,6 @@ async function analyzePositionDistribution() {
         console.log(`     Min: ${Math.min(...marketValues).toFixed(2)}`);
         console.log(`     Max: ${Math.max(...marketValues).toFixed(2)}`);
         console.log(`     Mean: ${(marketValues.reduce((a, b) => a + b, 0) / marketValues.length).toFixed(2)}`);
-      }
-
-      if (projectionScores.length > 0) {
-        console.log(`   Projection Scores:`);
-        console.log(`     Min: ${Math.min(...projectionScores).toFixed(2)}`);
-        console.log(`     Max: ${Math.max(...projectionScores).toFixed(2)}`);
-        console.log(`     Mean: ${(projectionScores.reduce((a, b) => a + b, 0) / projectionScores.length).toFixed(2)}`);
       }
 
       if (ageScores.length > 0) {
