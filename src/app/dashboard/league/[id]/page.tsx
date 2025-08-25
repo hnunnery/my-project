@@ -901,28 +901,7 @@ export default function LeaguePage() {
                    )}
                  </div>
                  
-                 {/* Debug Section - Remove this after fixing the issue */}
-                 <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-                   <h4 className="text-sm font-medium text-yellow-800 dark:text-yellow-200 mb-2">🔍 Debug Info</h4>
-                   <div className="text-xs text-yellow-700 dark:text-yellow-300 space-y-1">
-                     <div>Total Rosters: {leagueData.rosters.length}</div>
-                     <div>Filtered Rosters: {filteredRosters.length}</div>
-                     <div>Search Term: &quot;{searchTerm || 'None'}&quot;</div>
-                     <div className="mt-2">
-                       <strong>Roster Details:</strong>
-                       {filteredRosters.slice(0, 3).map((roster) => {
-                         const owner = getUserByOwnerId(roster.owner_id)
-                         return (
-                           <div key={roster.roster_id} className="ml-2 mt-1">
-                             • {owner?.display_name || owner?.username || 'Unknown'}: 
-                             {Array.isArray(roster.starters) ? roster.starters.length : 0} starters, 
-                             {Array.isArray(roster.reserve) ? roster.reserve.length : 0} bench
-                           </div>
-                         )
-                       })}
-                     </div>
-                   </div>
-                 </div>
+
                </div>
                
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
