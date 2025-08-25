@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useSession, signOut } from 'next-auth/react'
+import { useTheme } from 'next-themes'
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 import Image from 'next/image'
@@ -17,6 +18,7 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const { status } = useSession()
   const isAuthenticated = status === 'authenticated'
+  const { theme, setTheme } = useTheme()
 
   const handleAuthAction = () => {
     if (isAuthenticated) {
@@ -64,6 +66,12 @@ export function Header() {
           ))}
         </div>
         <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:gap-x-6">
+          <button
+            onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+            className="text-sm/6 font-semibold text-gray-900 dark:text-white"
+          >
+            Toggle theme
+          </button>
           {isAuthenticated && (
             <a href="/dashboard" className="text-sm/6 font-semibold text-gray-900 dark:text-white hover:text-gray-700 dark:hover:text-gray-300">
               Dashboard
@@ -142,6 +150,12 @@ export function Header() {
                 )}
               </div>
               <div className="py-6">
+                <button
+                  onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+                  className="-mx-3 mb-2 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-gray-900 hover:bg-gray-50 dark:text-white dark:hover:bg-white/5 w-full text-left"
+                >
+                  Toggle theme
+                </button>
                 {isAuthenticated ? (
                   <button
                     onClick={handleAuthAction}
