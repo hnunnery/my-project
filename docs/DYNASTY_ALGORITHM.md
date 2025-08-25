@@ -5,23 +5,23 @@ The dynasty value algorithm calculates fantasy football player values based on m
 
 ## Algorithm Components
 
-### 1. Market Value Calculation (85% weight)
+### 1. Market Value Calculation (90% weight)
 - **Source**: Sleeper ADP (Average Draft Position) data
-- **Normalization**: Logistic function with k=6 steepness
+- **Normalization**: Logistic function with k=8 steepness
 - **Range**: 0-100 (where lower ADP = higher value)
 - **Formula**: `logistic(adp, globalMin, globalMax)`
 
-### 2. Age Score Calculation (15% weight)
+### 2. Age Score Calculation (10% weight)
 - **Source**: Player age data from Sleeper API
 - **Curves**: Position-specific age multipliers
 - **Range**: 0-90 (capped to prevent saturation)
 - **Formula**: `ageMultiplier(position, age) * 100`
 
 ### 3. Composite Formula
-- **Market Weight**: 85%
-- **Age Weight**: 15%
-- **Formula**: `(marketValue * 0.85) + (ageScore * 0.15)`
-- **Range**: 0-98.5 (theoretical maximum)
+- **Market Weight**: 90%
+- **Age Weight**: 10%
+- **Formula**: `(marketValue * 0.9) + (ageScore * 0.1)`
+- **Range**: 0-99 (theoretical maximum)
 
 ## Position-Specific Age Curves
 
@@ -52,14 +52,14 @@ The dynasty value algorithm calculates fantasy football player values based on m
 ## Recent Improvements
 
 ### 1. Saturation Prevention
-- **Logistic steepness**: Reduced from k=10 to k=6
+- **Logistic steepness**: Increased from k=6 to k=8 for better elite player differentiation
 - **Age score cap**: Maximum 90 instead of 100
 - **Result**: Better differentiation between elite players
 
 ### 2. Weight Optimization
-- **Market value**: Increased from 75% to 85%
-- **Age score**: Decreased from 25% to 15%
-- **Result**: Dynasty values more closely track market sentiment
+- **Market value**: Increased from 75% to 90%
+- **Age score**: Decreased from 25% to 10%
+- **Result**: Dynasty values very closely track market sentiment
 
 ### 3. Error Handling
 - **Null checks**: Added validation for API responses
@@ -69,7 +69,7 @@ The dynasty value algorithm calculates fantasy football player values based on m
 ## Expected Results
 
 ### Value Distribution
-- **Elite players**: 90-98.5 range
+- **Elite players**: 90-99 range (better spread)
 - **Good players**: 70-89 range
 - **Average players**: 50-69 range
 - **Below average**: 30-49 range
