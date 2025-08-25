@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added age score cap at 90 to prevent extreme values
   - Implemented composite formula cap at 95 for additional protection
   - This ensures dynasty values have realistic ranges and better differentiation between elite players
+- **Dashboard Null User Error**: Fixed "Cannot read properties of null (reading 'user_id')" error in dashboard
+  - Added null checks for user object before accessing user_id and username properties
+  - Improved error handling for invalid API responses
+  - Prevents crashes when Sleeper API returns unexpected data
 
 ### Added
 - **Dynasty Assistant Integration**: Moved AI assistant chatbot to the league page chat tab

@@ -246,12 +246,20 @@ export default function Dashboard() {
       
       const user: SleeperUser = await userResponse.json()
       
+      // Debug: Log the user object to see what we're getting
+      console.log('Sleeper API response:', { normalizedUsername, user, hasUserId: !!user?.user_id })
+      
       // Save account automatically when fetching data (only if user is valid)
       if (user && user.user_id) {
         saveAccount(user)
       }
       
       // Then get user's leagues
+      if (!user || !user.user_id) {
+        console.error('Invalid user data:', user)
+        throw new Error(`Invalid user data received from API. Expected user_id but got: ${JSON.stringify(user)}`)
+      }
+      
       const currentYear = new Date().getFullYear()
       const previousYear = currentYear - 1
       
@@ -266,6 +274,10 @@ export default function Dashboard() {
       const leagues: SleeperLeague[] = await leaguesResponse.json()
 
       // Store the new data
+      if (!user.username) {
+        throw new Error('User username is missing')
+      }
+      
       const userKey = normalizeUsername(user.username)
       const newData = { user, leagues, lastUpdated: Date.now() }
       setStoredLeagues(prev => ({ ...prev, [userKey]: newData }))
