@@ -40,10 +40,6 @@ export default function Dashboard() {
   const [sleeperUsername, setSleeperUsername] = useState('')
   const [savedAccounts, setSavedAccounts] = useState<SavedSleeperAccount[]>([])
 
-  const [sleeperData, setSleeperData] = useState<{
-    user: SleeperUser | null
-    leagues: SleeperLeague[]
-  } | null>(null)
   const [isLoadingSleeper, setIsLoadingSleeper] = useState(false)
   const [sleeperError, setSleeperError] = useState('')
   const [storedLeagues, setStoredLeagues] = useState<{
@@ -53,6 +49,7 @@ export default function Dashboard() {
       lastUpdated: number
     }
   }>({})
+  const [successInfo, setSuccessInfo] = useState<{ user: SleeperUser; leagues: SleeperLeague[] } | null>(null)
 
   // Load saved accounts and stored leagues from localStorage on component mount
   useEffect(() => {
@@ -84,30 +81,6 @@ export default function Dashboard() {
     }
   }, [])
 
-  // Auto-load stored data when username changes
-  useEffect(() => {
-    if (sleeperUsername && storedLeagues[sleeperUsername]) {
-      const storedData = storedLeagues[sleeperUsername]
-      setSleeperData({ user: storedData.user, leagues: storedData.leagues })
-    } else {
-      setSleeperData(null)
-    }
-  }, [sleeperUsername, storedLeagues])
-
-  // Auto-fetch data for default account if no data exists
-  useEffect(() => {
-    if (sleeperUsername && !sleeperData && !isLoadingSleeper) {
-      // Check if we have stored data that's fresh
-      const storedData = storedLeagues[sleeperUsername]
-      const isDataFresh = storedData && (Date.now() - storedData.lastUpdated) < 24 * 60 * 60 * 1000 // 24 hours
-      
-      if (!storedData || !isDataFresh) {
-        // Auto-fetch if no data or data is stale
-        // Note: fetchSleeperData will be available when this effect runs
-        // We'll handle the auto-fetch in a separate effect after the function is defined
-      }
-    }
-  }, [sleeperUsername, sleeperData, isLoadingSleeper, storedLeagues])
 
   // Save accounts to localStorage whenever they change
   useEffect(() => {
@@ -179,9 +152,17 @@ export default function Dashboard() {
         setDefaultAccount(nextAccount.id)
       }
     }
-    
+
     setSavedAccounts(prev => prev.filter(acc => acc.id !== accountId))
-    
+
+    if (accountToRemove) {
+      setStoredLeagues(prev => {
+        const updated = { ...prev }
+        delete updated[accountToRemove.username]
+        return updated
+      })
+    }
+
     // Clear username if it was the removed account
     if (accountToRemove?.username === sleeperUsername) {
       setSleeperUsername('')
@@ -190,64 +171,72 @@ export default function Dashboard() {
 
 
 
-  const fetchSleeperData = useCallback(async (forceRefresh = false) => {
-    if (!sleeperUsername.trim()) return
+  const fetchSleeperData = useCallback(async (forceRefresh = false, showSuccess = false) => {
+    const username = sleeperUsername.trim()
+    if (!username) return
+
+    setSuccessInfo(null)
 
     // Check if we have stored data and it's not stale (less than 24 hours old)
-    const storedData = storedLeagues[sleeperUsername]
+    const storedData = storedLeagues[username]
     const twentyFourHours = 24 * 60 * 60 * 1000 // 24 hours in milliseconds
-    
+
     if (!forceRefresh && storedData && (Date.now() - storedData.lastUpdated) < twentyFourHours) {
-      // Use stored data if it's fresh
-      setSleeperData({ user: storedData.user, leagues: storedData.leagues })
+      if (showSuccess) {
+        setTimeout(() => setSuccessInfo({ user: storedData.user, leagues: storedData.leagues }), 0)
+        setSleeperUsername('')
+      }
       return
     }
 
     setIsLoadingSleeper(true)
     setSleeperError('')
-    
+
     try {
       // First get user info
-      const userResponse = await fetch(`https://api.sleeper.app/v1/user/${sleeperUsername}`)
+      const userResponse = await fetch(`https://api.sleeper.app/v1/user/${username}`)
       if (!userResponse.ok) throw new Error('User not found')
-      
+
       const user: SleeperUser = await userResponse.json()
-      
+
       // Save account automatically when fetching data (only if user is valid)
       if (user && user.user_id) {
         saveAccount(user)
       }
-      
+
       // Then get user's leagues
       const currentYear = new Date().getFullYear()
       const previousYear = currentYear - 1
-      
+
       let leaguesResponse = await fetch(`https://api.sleeper.app/v1/user/${user.user_id}/leagues/nfl/${currentYear}`)
       if (!leaguesResponse.ok) {
         // Try previous year if current year fails
         leaguesResponse = await fetch(`https://api.sleeper.app/v1/user/${user.user_id}/leagues/nfl/${previousYear}`)
       }
-      
+
       if (!leaguesResponse.ok) throw new Error('Failed to fetch leagues')
-      
+
       const leagues: SleeperLeague[] = await leaguesResponse.json()
-      
+
       // Store the new data
       const newData = { user, leagues, lastUpdated: Date.now() }
-      setStoredLeagues(prev => ({ ...prev, [sleeperUsername]: newData }))
-      
-      setSleeperData({ user, leagues })
-      
+      setStoredLeagues(prev => ({ ...prev, [username]: newData }))
+
+      if (showSuccess) {
+        setTimeout(() => setSuccessInfo({ user, leagues }), 0)
+      }
+
       // Clear the input to prepare for adding another account
       setSleeperUsername('')
     } catch (error) {
       console.error('Error fetching Sleeper data:', error)
       setSleeperError(error instanceof Error ? error.message : 'Failed to fetch data')
-      
+
       // If API fails but we have stored data, use that as fallback
       if (storedData) {
-        setSleeperData({ user: storedData.user, leagues: storedData.leagues })
+        setTimeout(() => setSuccessInfo({ user: storedData.user, leagues: storedData.leagues }), 0)
         setSleeperError('Using cached data due to API error. Data may be outdated.')
+        setSleeperUsername('')
       }
     } finally {
       setIsLoadingSleeper(false)
@@ -258,18 +247,18 @@ export default function Dashboard() {
   useEffect(() => {
     // Only auto-fetch if this is a saved account (not just typing in the input)
     const isSavedAccount = savedAccounts.some(acc => acc.username === sleeperUsername)
-    
-    if (sleeperUsername && !sleeperData && !isLoadingSleeper && isSavedAccount) {
+
+    if (sleeperUsername && !storedLeagues[sleeperUsername] && !isLoadingSleeper && isSavedAccount) {
       // Check if we have stored data that's fresh
       const storedData = storedLeagues[sleeperUsername]
       const isDataFresh = storedData && (Date.now() - storedData.lastUpdated) < 24 * 60 * 60 * 1000 // 24 hours
-      
+
       if (!storedData || !isDataFresh) {
         // Auto-fetch if no data or data is stale
-        fetchSleeperData(false)
+        fetchSleeperData(false, false)
       }
     }
-  }, [sleeperUsername, sleeperData, isLoadingSleeper, storedLeagues, fetchSleeperData, savedAccounts])
+  }, [sleeperUsername, isLoadingSleeper, storedLeagues, fetchSleeperData, savedAccounts])
 
   return (
     <AuthGuard>
@@ -347,7 +336,7 @@ export default function Dashboard() {
                    
                    return (
                      <button
-                       onClick={() => fetchSleeperData(true)}
+                       onClick={() => fetchSleeperData(true, false)}
                        disabled={isLoadingSleeper}
                        className="p-2 text-gray-600 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors"
                        title="Refresh leagues data"
@@ -422,22 +411,28 @@ export default function Dashboard() {
                     type="text"
                     id="sleeper-username"
                     value={sleeperUsername}
-                    onChange={(e) => setSleeperUsername(e.target.value)}
+                    onChange={(e) => {
+                      setSleeperUsername(e.target.value)
+                      setSuccessInfo(null)
+                    }}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && sleeperUsername.trim() && !isLoadingSleeper) {
-                        fetchSleeperData(false)
+                        fetchSleeperData(false, true)
                       }
                     }}
                     placeholder="Enter your Sleeper username..."
+                    autoComplete="off"
+                    autoCorrect="off"
+                    spellCheck={false}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white"
                   />
-                  {sleeperUsername && !sleeperData && isLoadingSleeper && (
+                  {sleeperUsername && !storedLeagues[sleeperUsername] && isLoadingSleeper && (
                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600"></div>
                     </div>
                   )}
                 </div>
-                                  {sleeperUsername && !sleeperData && !isLoadingSleeper && (
+                                  {sleeperUsername && !storedLeagues[sleeperUsername] && !isLoadingSleeper && (
                     <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                       Press Enter or click &quot;Fetch Leagues&quot; to load your data
                     </p>
@@ -445,12 +440,12 @@ export default function Dashboard() {
               </div>
               
               <div className="flex items-end gap-2">
-                                 <button
-                   onClick={() => fetchSleeperData(false)}
+                <button
+                   onClick={() => fetchSleeperData(false, true)}
                    disabled={isLoadingSleeper || !sleeperUsername.trim()}
                    className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
                  >
-                   {isLoadingSleeper ? 'Loading...' : 'Add Leagues'}
+                   {isLoadingSleeper ? 'Getting leagues...' : 'Add Leagues'}
                  </button>
 
               </div>
@@ -463,7 +458,7 @@ export default function Dashboard() {
             )}
 
             {/* Success Message */}
-            {sleeperData && (
+            {successInfo && (
               <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
                 <div className="flex items-center gap-3">
                   <div className="flex-shrink-0">
@@ -476,7 +471,7 @@ export default function Dashboard() {
                       Account Added Successfully!
                     </h3>
                     <p className="text-sm text-green-700 dark:text-green-300">
-                      {sleeperData.user?.display_name || sleeperData.user?.username} has been added with {sleeperData.leagues.length} leagues.
+                      {successInfo.user.display_name || successInfo.user.username} has been added with {successInfo.leagues.length} leagues.
                     </p>
                   </div>
                 </div>
