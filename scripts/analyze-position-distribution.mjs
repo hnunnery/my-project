@@ -57,7 +57,6 @@ async function analyzePositionDistribution() {
       const marketValues = players.map(p => p.marketValue).filter(v => v !== null);
       const projectionScores = players.map(p => p.projectionScore).filter(v => v !== null);
       const ageScores = players.map(p => p.ageScore).filter(v => v !== null);
-      const riskScores = players.map(p => p.riskScore).filter(v => v !== null);
 
       console.log(`🏈 ${pos} Position (${players.length} players):`);
       console.log(`   Dynasty Values:`);
