@@ -89,3 +89,38 @@ function generateSyntheticADP(position: string, yearsExp: number, injuryStatus?:
   
   return Math.max(1, baseADP + adjustment);
 }
+
+export interface SleeperNewsItem {
+  player_id: string;
+  title: string;
+  body: string;
+  source: string;
+  timestamp: number;
+}
+
+export async function fetchSleeperNews(playerIds: string[]): Promise<SleeperNewsItem[]> {
+  if (!playerIds || playerIds.length === 0) return [];
+
+  const url = `${SLEEPER_BASE_URL}/news/nfl?players=${playerIds.join(',')}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch Sleeper news: ${response.status}`);
+  }
+  type RawNews = {
+    player_id: string;
+    title: string;
+    body: string;
+    source: string;
+    timestamp?: number;
+    created?: number;
+    updated?: number;
+  }[];
+  const data: RawNews = await response.json();
+  return (Array.isArray(data) ? data : []).map((item) => ({
+    player_id: item.player_id,
+    title: item.title,
+    body: item.body,
+    source: item.source,
+    timestamp: item.timestamp ?? item.created ?? item.updated ?? 0,
+  }));
+}
