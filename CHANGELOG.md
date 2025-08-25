@@ -118,6 +118,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **✅ Dropdown Styling Enhanced**: Added custom CSS for expanded dropdown with hover effects, gradients, and better visual feedback
 - **✅ Icon Cleanup**: Removed football emoji from "All Teams" option for cleaner appearance
 - **✅ Header Update**: Changed dashboard page header from "Fantasy Football Dashboard" to "Dynasty Dashboard"
+- **✅ Mobile-First Dashboard**: Tightened spacing, reduced padding, optimized grid gaps, and centered header text on mobile screens
 
 ## [0.1.0] - 2025-01-XX
 

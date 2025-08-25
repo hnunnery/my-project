@@ -290,20 +290,20 @@ export default function Dashboard() {
   return (
     <AuthGuard>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
-              Dynasty Dashboard
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">
-              Manage your Sleeper fantasy football leagues
-            </p>
-          </div>
+                 <div className="max-w-7xl mx-auto py-4 px-3 sm:px-4 lg:px-6">
+                      <div className="mb-4 text-center sm:text-left">
+             <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
+               Dynasty Dashboard
+             </h1>
+             <p className="text-gray-600 dark:text-gray-400 mt-2">
+               Manage your Sleeper fantasy football leagues
+             </p>
+           </div>
 
-          {/* Saved Accounts */}
-          {savedAccounts.length > 0 && (
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                     {/* Saved Accounts */}
+           {savedAccounts.length > 0 && (
+             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 mb-4">
+               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {savedAccounts.map((account) => (
                   <div key={account.id} className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border-2 border-transparent hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
                     <div className="flex items-center gap-3 mb-3">
@@ -388,13 +388,13 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* Sleeper Integration */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-              🏈 Sleeper Fantasy Football
-            </h2>
-            
-            <div className="flex flex-col sm:flex-row gap-4 mb-4">
+                     {/* Sleeper Integration */}
+           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 mb-4">
+             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+               🏈 Sleeper Fantasy Football
+             </h2>
+             
+             <div className="flex flex-col sm:flex-row gap-3 mb-3">
               <div className="flex-1">
                 <label htmlFor="sleeper-username" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Sleeper Username
@@ -545,12 +545,12 @@ export default function Dashboard() {
                   </div>
                 )}
 
-                {sleeperData.leagues.length > 0 ? (
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-                      Your Leagues ({sleeperData.leagues.length})
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                 {sleeperData.leagues.length > 0 ? (
+                   <div>
+                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+                       Your Leagues ({sleeperData.leagues.length})
+                     </h3>
+                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                       {sleeperData.leagues.map((league) => (
                         <Link
                           key={league.league_id}
@@ -578,14 +578,14 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Admin Panel - Moved below leagues */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-              ⚙️ Admin Panel
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
-              Manage system settings and data cache
-            </p>
+                     {/* Admin Panel - Moved below leagues */}
+           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 mb-4">
+             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+               ⚙️ Admin Panel
+             </h2>
+             <p className="text-gray-600 dark:text-gray-400 mb-3">
+               Manage system settings and data cache
+             </p>
             <a 
               href="/admin/players" 
               className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
