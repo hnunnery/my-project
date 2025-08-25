@@ -317,7 +317,8 @@ export default function LeaguePage() {
     </div>
   )
 
-  // Get current user's team by matching the owner username with the default saved account
+  // Get current user's team by matching the default saved account to a roster owner.
+  // Handles missing usernames by attempting a display_name match before falling back to username
   const getMyTeam = () => {
     if (!leagueData?.rosters || leagueData.rosters.length === 0) return null
     
