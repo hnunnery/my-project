@@ -1,21 +1,28 @@
-export function ageMultiplier(position: string, ageYears: number | null): number {
-  if (!ageYears) return 1.0;
+export function ageMultiplier(position: string, age: number | null): number {
+  if (!age) return 1.0;
 
-  const curves: Record<string, { peak: number; decline: number }> = {
-    QB: { peak: 28, decline: 0.02 },
-    RB: { peak: 25, decline: 0.08 },
-    WR: { peak: 27, decline: 0.04 },
-    TE: { peak: 28, decline: 0.03 },
-    K: { peak: 30, decline: 0.01 },
-    DEF: { peak: 26, decline: 0.03 },
-  };
+  switch (position) {
+    case "QB":
+      if (age <= 25) return 0.85 + (age - 20) * 0.03;
+      if (age <= 32) return 1.0;
+      return Math.max(0.3, 1.0 - (age - 32) * 0.08);
 
-  const curve = curves[position] || curves.WR;
-  const ageDiff = ageYears - curve.peak;
-  
-  if (ageDiff <= 0) {
-    return 1.0 + Math.abs(ageDiff) * 0.01;
-  } else {
-    return Math.max(0.3, 1.0 - ageDiff * curve.decline);
+    case "RB":
+      if (age <= 24) return 0.7 + (age - 20) * 0.075;
+      if (age <= 27) return 1.0;
+      return Math.max(0.2, 1.0 - (age - 27) * 0.15);
+
+    case "WR":
+      if (age <= 25) return 0.8 + (age - 20) * 0.04;
+      if (age <= 29) return 1.0;
+      return Math.max(0.4, 1.0 - (age - 29) * 0.1);
+
+    case "TE":
+      if (age <= 26) return 0.75 + (age - 20) * 0.042;
+      if (age <= 30) return 1.0;
+      return Math.max(0.35, 1.0 - (age - 30) * 0.09);
+
+    default:
+      return 1.0; // K, DEF have minimal age impact
   }
 }

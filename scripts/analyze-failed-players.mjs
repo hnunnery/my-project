@@ -24,18 +24,17 @@ async function analyzeFailedPlayers() {
     // Analyze positions
     const positionCounts = {};
     const positionWithNullData = {};
-    
+
     for (const record of failedPlayers) {
       const pos = record.player.pos;
       if (!positionCounts[pos]) {
         positionCounts[pos] = 0;
-        positionWithNullData[pos] = { market: 0, projection: 0, age: 0 };
+        positionWithNullData[pos] = { market: 0, age: 0 };
       }
-      
+
       positionCounts[pos]++;
-      
+
       if (record.marketValue === null) positionWithNullData[pos].market++;
-      if (record.projectionScore === null) positionWithNullData[pos].projection++;
       if (record.ageScore === null) positionWithNullData[pos].age++;
     }
 
@@ -43,7 +42,7 @@ async function analyzeFailedPlayers() {
     for (const [pos, count] of Object.entries(positionCounts)) {
       const nullData = positionWithNullData[pos];
       console.log(`   ${pos}: ${count} players`);
-      console.log(`     Market null: ${nullData.market}, Projection null: ${nullData.projection}, Age null: ${nullData.age}`);
+      console.log(`     Market null: ${nullData.market}, Age null: ${nullData.age}`);
     }
 
     // Analyze age patterns
@@ -79,20 +78,17 @@ async function analyzeFailedPlayers() {
     const dataPatterns = {
       'all_null': 0,
       'market_only': 0,
-      'projection_only': 0,
       'age_only': 0,
       'partial_data': 0
     };
 
     for (const record of failedPlayers) {
       const hasMarket = record.marketValue !== null;
-      const hasProjection = record.projectionScore !== null;
       const hasAge = record.ageScore !== null;
-      
-      if (!hasMarket && !hasProjection && !hasAge) dataPatterns['all_null']++;
-      else if (hasMarket && !hasProjection && !hasAge) dataPatterns['market_only']++;
-      else if (!hasMarket && hasProjection && !hasAge) dataPatterns['projection_only']++;
-      else if (!hasMarket && !hasProjection && hasAge) dataPatterns['age_only']++;
+
+      if (!hasMarket && !hasAge) dataPatterns['all_null']++;
+      else if (hasMarket && !hasAge) dataPatterns['market_only']++;
+      else if (!hasMarket && hasAge) dataPatterns['age_only']++;
       else dataPatterns['partial_data']++;
     }
 
@@ -110,9 +106,7 @@ async function analyzeFailedPlayers() {
       const record = failedPlayers[i];
       console.log(`\n   ${record.player.name} (${record.player.pos}, Age: ${record.player.ageYears || 'N/A'}, Team: ${record.player.team || 'N/A'})`);
       console.log(`     Market: ${record.marketValue}`);
-      console.log(`     Projection: ${record.projectionScore}`);
       console.log(`     Age Score: ${record.ageScore}`);
-      console.log(`     Risk Score: ${record.riskScore}`);
     }
 
     // Check if there are any patterns in team or specific IDs

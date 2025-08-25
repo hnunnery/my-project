@@ -58,7 +58,7 @@ async function checkRealTimeStatus() {
       console.log(`\nSample of failed players (first 5):`);
       for (const record of failedPlayers) {
         console.log(`   ${record.player.name} (${record.player.pos}, Age: ${record.player.ageYears || 'N/A'}, Team: ${record.player.team || 'N/A'})`);
-        console.log(`     Market: ${record.marketValue}, Projection: ${record.projectionScore}, Age: ${record.ageScore}`);
+        console.log(`     Market: ${record.marketValue}, Age: ${record.ageScore}`);
       }
       
       // Check if these failed players actually have ADP data

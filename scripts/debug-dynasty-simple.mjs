@@ -84,7 +84,7 @@ async function debugDynastySimple() {
 
     for (const record of failedPlayers) {
       console.log(`❌ ${record.player.name} (${record.player.pos}, Age: ${record.player.ageYears || 'N/A'})`);
-      console.log(`   Market: ${record.marketValue}, Projection: ${record.projectionScore}, Age: ${record.ageScore}`);
+      console.log(`   Market: ${record.marketValue}, Age: ${record.ageScore}`);
     }
 
     // Sample some players that succeeded
@@ -104,7 +104,7 @@ async function debugDynastySimple() {
 
     for (const record of successPlayers) {
       console.log(`✅ ${record.player.name} (${record.player.pos}, Age: ${record.player.ageYears || 'N/A'})`);
-      console.log(`   Market: ${record.marketValue}, Projection: ${record.projectionScore}, Age: ${record.ageScore}`);
+      console.log(`   Market: ${record.marketValue}, Age: ${record.ageScore}`);
       console.log(`   Dynasty Value: ${record.dynastyValue}`);
     }
 

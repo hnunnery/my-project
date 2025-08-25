@@ -14,8 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Generic Player Page**: Created placeholder player page with "Coming Soon" message for future player details functionality
 
 ### Changed
-- **Dynasty Value Formula**: Removed risk score, updated weights to Market (50%), Projection (25%), Age (25%)
-- **ADP Normalization**: Changed from position-based to global ADP normalization
+- **Dynasty Value Formula**: Removed projection and risk scores; weights now Market (75%) and Age (25%)
+- **ADP Normalization**: Switched to logistic scaling to reduce score saturation
 - **UI Restructuring**: Removed standalone dynasty values and assistant pages from dashboard
 - **Chat Component Styling**: Streamlined chat interface with mobile-first design, removed header and borders
 
@@ -27,8 +27,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Type Errors**: Resolved TypeScript interface mismatches for DynastyAssistant component props
 
 ### Technical
-- **ETL Pipeline**: Updated to use global ADP normalization and removed risk score calculations
-- **Database Schema**: Removed riskScore field from ValueDaily model
+- **ETL Pipeline**: Implemented logistic ADP normalization and detailed age curves; removed projection and risk computations
+- **Database Schema**: Dropped projectionScore and riskScore fields from ValueDaily model
 - **Build Scripts**: Enhanced package.json scripts for better Prisma handling and error recovery
 - **API Integration**: Improved Sleeper API roster processing with fallback bench player calculation
 
@@ -59,7 +59,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Dynasty Value Algorithm Improvements
 - **ADP Value Preservation**: Removed normalization to preserve original ADP meaning (1 = most valuable)
 - **Market Value Calculation**: Direct conversion from ADP to 0-100 scale where 1st pick = 100
-- **Projection Score**: Now directly based on market value for more accurate dynasty rankings
 - **Formula Accuracy**: Better reflects real-world draft value and market sentiment
 
 ### Critical Bug Fixes

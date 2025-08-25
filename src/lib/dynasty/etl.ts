@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import { fetchSleeperPlayers, fetchSleeperADP, SleeperPlayer } from "../sleeper";
 import { ageMultiplier } from "./ageCurves";
 import { composite } from "./formula";
+import { logistic } from "./normalize";
 
 const prisma = new PrismaClient();
 
@@ -119,9 +120,9 @@ export async function runDynastyETL(asOf = new Date('2025-01-01')) {
     .filter((r: { playerId: string; pos?: string; adp: number }): r is { playerId: string; pos: string; adp: number } => 
       Boolean(r.pos) && Number.isFinite(r.adp));
 
-  // Use ADP directly without position-based normalization
+  // Use ADP directly with logistic normalization to avoid saturation
   const marketById = new Map<string, number>();
-  
+
   console.log(`Processing ${withPos.length} players with ADP data`);
 
   // Find global ADP range across all positions
@@ -131,21 +132,11 @@ export async function runDynastyETL(asOf = new Date('2025-01-01')) {
   console.log(`Global ADP range: ${globalMin}-${globalMax} across all positions`);
 
   for (const a of withPos) {
-    // Use ADP directly - lower numbers are more valuable (1st pick = best)
-    // Convert to 0-100 scale where 1 = 100, max = 0
-    const marketValue = Math.max(0, 100 - ((a.adp - globalMin) / (globalMax - globalMin)) * 100);
+    const marketValue = logistic(a.adp, globalMin, globalMax);
     marketById.set(a.playerId, marketValue);
   }
-  
-  console.log(`Generated ${marketById.size} market values`);
 
-  const projectionById = new Map<string, number>();
-  for (const r of withPos) {
-    // Projection score based on market value (ADP)
-    // Higher market value (lower ADP) = higher projection
-    const marketValue = marketById.get(r.playerId) ?? 0;
-    projectionById.set(r.playerId, marketValue);
-  }
+  console.log(`Generated ${marketById.size} market values`);
 
   // Only process players that have ADP data (fantasy-relevant players)
   const playersWithADP = await prisma.player.findMany({ 
@@ -160,36 +151,24 @@ export async function runDynastyETL(asOf = new Date('2025-01-01')) {
   const now = asOf;
   const rows = playersWithADP.map((p: { id: string; pos: string; ageYears: number | null }) => {
     const marketValue = marketById.get(p.id) ?? null;
-    const projectionScore = projectionById.get(p.id) ?? null;
-    
-    // Enhanced age score calculation with better edge case handling
+
     let ageScore: number | null = null;
-    if (projectionScore !== null && p.ageYears !== null) {
-      const ageMult = ageMultiplier(p.pos, p.ageYears);
-      // Handle edge case where projectionScore is 0 (low ADP players)
-      if (projectionScore === 0) {
-        // For very low ADP players, give them a minimal but valid age score
-        ageScore = Math.max(1, Math.min(100, ageMult * 10)); // Scale up age multiplier for low ADP
-      } else {
-        ageScore = Math.min(100, Math.max(1, projectionScore * ageMult));
-      }
+    if (p.ageYears !== null) {
+      ageScore = Math.round(ageMultiplier(p.pos, p.ageYears) * 100);
     }
-    
-    // Enhanced dynasty value calculation with better validation
+
     let dynastyValue: number | null = null;
-    if (marketValue !== null && projectionScore !== null && ageScore !== null) {
-      // Additional validation to ensure all scores are reasonable
-      if (marketValue >= 0 && projectionScore >= 0 && ageScore >= 1) {
-        dynastyValue = composite({ marketValue, projectionScore, ageScore });
+    if (marketValue !== null && ageScore !== null) {
+      if (marketValue >= 0 && ageScore >= 0) {
+        dynastyValue = composite({ marketValue, ageScore });
       }
     }
 
-    return { 
-      playerId: p.id, 
-      marketValue, 
-      projectionScore, 
-      ageScore, 
-      dynastyValue 
+    return {
+      playerId: p.id,
+      marketValue,
+      ageScore,
+      dynastyValue
     };
   });
   
@@ -206,7 +185,7 @@ export async function runDynastyETL(asOf = new Date('2025-01-01')) {
     
     try {
       await prisma.$transaction(
-      batch.map((r: { playerId: string; marketValue: number | null; projectionScore: number | null; ageScore: number | null; dynastyValue: number | null }) => prisma.valueDaily.upsert({
+      batch.map((r: { playerId: string; marketValue: number | null; ageScore: number | null; dynastyValue: number | null }) => prisma.valueDaily.upsert({
         where: { 
           asOfDate_playerId: { 
             asOfDate: now, 

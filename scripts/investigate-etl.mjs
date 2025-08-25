@@ -73,7 +73,7 @@ async function investigateETL() {
     console.log(`\n❌ Sample Players Without Dynasty Values:`);
     for (const record of noDynastySample) {
       console.log(`   ${record.player.name} (${record.player.pos}, Age: ${record.player.ageYears || 'N/A'})`);
-      console.log(`     Market: ${record.marketValue}, Projection: ${record.projectionScore}, Age: ${record.ageScore}`);
+      console.log(`     Market: ${record.marketValue}, Age: ${record.ageScore}`);
     }
 
     // Check database locks and connections
